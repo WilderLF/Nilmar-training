@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#EAF2FA" />
+  <title>Nilmar Montilla · Entrenamiento</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <img src="assets/isologo.png" alt="" class="brand-logo" />
+        <div class="wordmark"><span class="wm-light">nilmar</span><span class="wm-bold">montilla</span></div>
+      </div>
+      <button id="install-btn" class="ghost-btn small-btn hidden">Instalar</button>
+    </header>
+
+    <main>
+      <!-- ============ HOY ============ -->
+      <section id="home-view" class="view active">
+        <article class="hero-card">
+          <p class="muted" id="date-label">Hoy</p>
+          <div id="today-module" class="module-line"></div>
+          <h1 id="today-title">Cargando…</h1>
+          <p id="today-goal" class="lead">Preparando tu día.</p>
+          <div class="hero-meta"><span id="today-duration">--</span><span id="today-intensity">--</span></div>
+          <div id="today-sessions"></div>
+        </article>
+
+        <article id="medical-note" class="panel medical hidden">
+          <h3>Antes que nada</h3>
+          <p id="medical-note-text"></p>
+        </article>
+
+        <section id="milestones" class="panel milestones"></section>
+
+        <section class="stats-grid">
+          <article class="stat-card"><span id="week-count">0/0</span><p id="week-count-label">Sesiones de la semana</p></article>
+          <article class="stat-card"><span id="weight-stat">—</span><p>Peso actual</p></article>
+        </section>
+
+        <section id="nutrition-mini" class="panel"></section>
+
+        <section class="panel">
+          <label class="label">¿Cómo te sentís hoy? <span id="readiness-label">Normal</span></label>
+          <div class="readiness-grid">
+            <button data-readiness="tired">😴 Cansada</button>
+            <button data-readiness="normal" class="active">🙂 Normal</button>
+            <button data-readiness="energized">🔥 Con energía</button>
+          </div>
+          <p class="dataset-note">Si elegís "cansada", la app baja las series a 2. Si elegís "con energía", suma una serie. Entrenar cansada con menos volumen es mejor que no entrenar.</p>
+        </section>
+
+        <section class="panel">
+          <h3>Registrar actividad</h3>
+          <div class="quick-actions">
+            <button data-activity="Gimnasio">Gimnasio</button>
+            <button data-activity="Entrenamiento en casa">Casa</button>
+            <button data-activity="Caminata">Caminata</button>
+            <button data-activity="Etapa del Camino">Etapa</button>
+            <button data-activity="Movilidad / estiramiento">Movilidad</button>
+            <button data-activity="Otra actividad">Otra</button>
+          </div>
+        </section>
+
+        <section class="panel note-panel">
+          <h3>Recomendación</h3>
+          <p id="smart-note-text"></p>
+        </section>
+      </section>
+
+      <!-- ============ PLAN ============ -->
+      <section id="plan-view" class="view">
+        <div class="section-title-row">
+          <div><p class="eyebrow">Tu plan</p><h2>Módulos y bloques</h2></div>
+        </div>
+
+        <article class="panel">
+          <h3>Módulos disponibles</h3>
+          <p class="muted">Elegí uno para ver su semana. Después asignalo a un bloque de fechas.</p>
+          <div id="module-cards" class="module-cards"></div>
+        </article>
+
+        <article class="panel">
+          <div class="section-title-row compact-row">
+            <h3 id="module-detail-title">Módulo</h3>
+            <span id="module-active-badge" class="chip badge-active hidden">Activo hoy</span>
+          </div>
+          <p id="module-detail-desc" class="muted"></p>
+          <ul id="module-keys" class="keys-list"></ul>
+        </article>
+
+        <div id="week-list" class="week-list"></div>
+
+        <article class="panel">
+          <h3>Mis bloques</h3>
+          <p class="muted">Un bloque asigna un módulo a un rango de fechas. Fuera de todo bloque se usa el módulo por defecto.</p>
+          <div id="block-list" class="block-list"></div>
+
+          <details class="instructions-box top-gap">
+            <summary>Agregar un bloque</summary>
+            <label class="label" for="block-module">Módulo</label>
+            <select id="block-module"></select>
+            <div class="macro-inputs">
+              <div><label class="label" for="block-start">Desde</label><input id="block-start" type="date" /></div>
+              <div><label class="label" for="block-end">Hasta</label><input id="block-end" type="date" /></div>
+            </div>
+            <label class="label" for="block-label">Nombre (opcional)</label>
+            <input id="block-label" type="text" placeholder="Ej: Mes de gimnasio" />
+            <p id="block-error" class="warn-note hidden">Revisá las fechas: la de fin tiene que ser posterior a la de inicio.</p>
+            <button id="add-block" class="primary-btn full top-gap">Agregar bloque</button>
+          </details>
+
+          <label class="label top-gap" for="default-module">Módulo por defecto</label>
+          <select id="default-module"></select>
+        </article>
+      </section>
+
+      <!-- ============ ENTRENAMIENTO ============ -->
+      <section id="workout-view" class="view">
+        <div class="section-title-row">
+          <button id="back-to-home" class="ghost-btn small-btn">Salir</button>
+          <p id="workout-progress" class="muted"></p>
+        </div>
+        <article class="workout-card">
+          <div class="demo-frame">
+            <img id="exercise-gif" alt="Demostración del ejercicio" />
+            <div id="video-fallback" class="video-fallback">
+              <img src="assets/isologo.png" alt="" class="fallback-logo" />
+              <span id="demo-status">Buscando animación…</span>
+            </div>
+          </div>
+          <h2 id="exercise-name">Ejercicio</h2>
+          <p id="exercise-note" class="lead"></p>
+          <details id="exercise-instructions" class="instructions-box hidden">
+            <summary>Cómo hacerlo paso a paso</summary>
+            <ol id="instruction-list"></ol>
+          </details>
+          <div class="media-tools">
+            <button id="change-animation" class="ghost-btn small-btn">Cambiar animación</button>
+            <a id="media-attribution" class="attribution hidden" href="https://gymvisual.com/" target="_blank" rel="noopener">© Gym visual</a>
+          </div>
+          <div class="exercise-meta-grid">
+            <div><span id="set-counter">1 / 1</span><p>Series</p></div>
+            <div><span id="exercise-reps">--</span><p>Reps / tiempo</p></div>
+            <div><span id="exercise-rest">--</span><p>Descanso</p></div>
+          </div>
+          <div id="timer-box" class="timer-box hidden">
+            <p>Descanso</p>
+            <strong id="timer-display">00:00</strong>
+            <div class="button-grid">
+              <button id="skip-rest" class="secondary-btn">Omitir</button>
+              <button id="add-rest" class="ghost-btn">+30 s</button>
+            </div>
+          </div>
+          <div class="button-grid">
+            <button id="complete-set" class="primary-btn">Completar serie</button>
+            <button id="skip-exercise" class="secondary-btn">Saltar</button>
+          </div>
+        </article>
+      </section>
+
+      <section id="exercise-picker-view" class="view">
+        <div class="section-title-row">
+          <h2>Elegir animación</h2>
+          <button id="close-picker" class="ghost-btn small-btn">Volver</button>
+        </div>
+        <article class="panel">
+          <label class="label" for="exercise-search">Buscar ejercicio</label>
+          <div class="search-row">
+            <input id="exercise-search" type="search" placeholder="Ej: leg press, glute bridge…" />
+            <button id="run-exercise-search" class="primary-btn">Buscar</button>
+          </div>
+          <p class="dataset-note">El catálogo está en inglés. Solo mostramos una animación cuando la coincidencia es confiable.</p>
+        </article>
+        <div id="exercise-search-results" class="exercise-results"></div>
+      </section>
+
+      <section id="log-view" class="view">
+        <div class="section-title-row">
+          <h2>Guardar actividad</h2>
+          <button data-nav="home-view" class="ghost-btn small-btn">Cancelar</button>
+        </div>
+        <article class="panel">
+          <p class="muted">Actividad</p>
+          <h3 id="log-activity-title">Actividad</h3>
+          <label class="label">Intensidad</label>
+          <div class="rating-grid" id="intensity-grid">
+            <button data-value="1">1<br><small>Muy suave</small></button>
+            <button data-value="2">2<br><small>Suave</small></button>
+            <button data-value="3">3<br><small>Media</small></button>
+            <button data-value="4">4<br><small>Fuerte</small></button>
+            <button data-value="5">5<br><small>Muy fuerte</small></button>
+          </div>
+          <label class="label" for="log-km">Distancia en km (opcional)</label>
+          <input id="log-km" type="number" inputmode="decimal" step="0.1" placeholder="Ej: 18.5" />
+          <label class="label" for="pain-select">Molestia o dolor</label>
+          <select id="pain-select">
+            <option>Ninguno</option><option>Rodilla</option><option>Tobillo</option><option>Pie / ampollas</option>
+            <option>Cadera</option><option>Espalda baja</option><option>Hombro</option><option>Cuello</option>
+          </select>
+          <label class="label" for="log-note">Nota</label>
+          <textarea id="log-note" placeholder="Ej: subí 2 kg en prensa, me sentí bien"></textarea>
+          <button id="save-log" class="primary-btn full">Guardar</button>
+        </article>
+      </section>
+
+      <!-- ============ NUTRICIÓN ============ -->
+      <section id="nutrition-view" class="view">
+        <div class="section-title-row">
+          <div><p class="eyebrow">Bajar grasa, cuidar el músculo</p><h2>Nutrición</h2></div>
+        </div>
+
+        <article class="panel nut-summary">
+          <p class="eyebrow" id="nut-day-type">Hoy</p>
+          <div class="kcal-line"><strong id="nut-kcal">0 / 0</strong><span>kcal</span></div>
+          <p id="nut-day-note" class="muted"></p>
+          <p id="nut-floor-warning" class="warn-note hidden">El cálculo llegó al piso de 1.400 kcal. No conviene bajar de ahí: menos comida no acelera el resultado, pero sí hace perder músculo y pelo.</p>
+          <div id="nut-bars" class="macro-bars"></div>
+        </article>
+
+        <article class="panel">
+          <h3>Agregar comida</h3>
+          <label class="label" for="food-select">Alimento</label>
+          <select id="food-select"></select>
+          <div class="food-form-row">
+            <div>
+              <label class="label" for="food-qty">Porciones</label>
+              <div class="qty-row">
+                <button class="ghost-btn qty-btn" data-qty-step="-0.5" aria-label="Menos">−</button>
+                <input id="food-qty" type="number" inputmode="decimal" min="0.25" step="0.25" value="1" />
+                <button class="ghost-btn qty-btn" data-qty-step="0.5" aria-label="Más">+</button>
+              </div>
+            </div>
+            <div>
+              <label class="label" for="meal-select">Comida</label>
+              <select id="meal-select"></select>
+            </div>
+          </div>
+          <p id="food-preview" class="food-preview"></p>
+          <button id="add-food" class="primary-btn full">Agregar</button>
+
+          <details class="instructions-box top-gap">
+            <summary>Alimento personalizado (leé la etiqueta)</summary>
+            <label class="label" for="cf-name">Nombre</label>
+            <input id="cf-name" type="text" placeholder="Ej: Milanesa de pollo al horno" />
+            <label class="label" for="cf-unit">Porción</label>
+            <input id="cf-unit" type="text" placeholder="Ej: 1 unidad (150 g)" />
+            <div class="macro-inputs">
+              <div><label class="label" for="cf-p">Proteína (g)</label><input id="cf-p" type="number" inputmode="decimal" min="0" step="0.1" /></div>
+              <div><label class="label" for="cf-c">Carbos (g)</label><input id="cf-c" type="number" inputmode="decimal" min="0" step="0.1" /></div>
+              <div><label class="label" for="cf-f">Grasas (g)</label><input id="cf-f" type="number" inputmode="decimal" min="0" step="0.1" /></div>
+            </div>
+            <label class="check-row"><input id="cf-save" type="checkbox" checked /> Guardar en "Mis alimentos"</label>
+            <p id="cf-error" class="warn-note hidden">Poné un nombre y al menos un macronutriente.</p>
+            <button id="add-custom-food" class="secondary-btn full">Agregar personalizado</button>
+          </details>
+        </article>
+
+        <article class="panel">
+          <h3>Comidas de hoy</h3>
+          <div id="food-log" class="food-log"></div>
+        </article>
+
+        <article class="panel">
+          <h3>Últimos 7 días</h3>
+          <div id="macro-history" class="macro-history"></div>
+        </article>
+
+        <details class="panel profile-panel">
+          <summary><h3>Mi perfil y cálculo</h3></summary>
+          <div class="macro-inputs">
+            <div><label class="label" for="pf-height">Altura (cm)</label><input id="pf-height" type="number" inputmode="numeric" /></div>
+            <div><label class="label" for="pf-age">Edad</label><input id="pf-age" type="number" inputmode="numeric" /></div>
+            <div><label class="label" for="pf-weight">Peso (kg)</label><input id="pf-weight" type="number" inputmode="decimal" step="0.1" /></div>
+          </div>
+          <p class="dataset-note">Si registrás tu peso en Progreso, se usa el promedio de los últimos 7 días.</p>
+          <label class="label" for="pf-activity">Nivel de actividad</label>
+          <select id="pf-activity"></select>
+          <label class="label" for="pf-goal">Objetivo</label>
+          <select id="pf-goal">
+            <option value="lose">Bajar de peso</option>
+            <option value="maintain">Mantener</option>
+          </select>
+          <div id="pf-rate-row">
+            <label class="label" for="pf-rate">Ritmo</label>
+            <select id="pf-rate">
+              <option value="0.4">Suave · 0,4 kg por semana</option>
+              <option value="0.5">Recomendado · 0,5 kg por semana</option>
+              <option value="0.65">Rápido · 0,65 kg por semana</option>
+            </select>
+          </div>
+          <label class="label" for="pf-protein">Proteína: <span id="pf-protein-label">2 g/kg</span></label>
+          <input id="pf-protein" type="range" min="1.6" max="2.4" step="0.1" />
+          <label class="check-row"><input id="pf-carbcycle" type="checkbox" /> Ajustar calorías según el día (más en días de fuerza, menos en días de descanso)</label>
+          <button id="save-profile" class="primary-btn full top-gap">Guardar perfil</button>
+          <p id="pf-saved" class="ok-note hidden">Perfil guardado ✓</p>
+          <div id="pf-summary" class="pf-summary"></div>
+        </details>
+      </section>
+
+      <!-- ============ PROGRESO ============ -->
+      <section id="progress-view" class="view">
+        <div class="section-title-row">
+          <div><p class="eyebrow">Tu camino</p><h2>Progreso</h2></div>
+        </div>
+
+        <article class="panel">
+          <h3>Meta</h3>
+          <div class="goal-track"><i id="goal-bar"></i></div>
+          <p id="goal-text" class="goal-text"></p>
+          <p id="goal-projection" class="feedback-note"></p>
+        </article>
+
+        <article class="panel">
+          <h3>Peso</h3>
+          <div class="stats-grid mini-stats">
+            <div class="stat-card"><span id="weight-avg">—</span><p>Promedio 7 días</p></div>
+            <div class="stat-card"><span id="weight-diff">—</span><p>vs. semana anterior</p></div>
+          </div>
+          <div id="weight-chart" class="weight-chart"></div>
+          <p id="weight-feedback" class="feedback-note"></p>
+          <div class="button-grid">
+            <button id="apply-kcal-adjust" class="secondary-btn hidden">Ajustar</button>
+            <button id="reset-kcal-adjust" class="ghost-btn hidden">Quitar ajuste</button>
+          </div>
+          <p id="kcal-adjust-note" class="dataset-note"></p>
+          <div class="macro-inputs">
+            <div><label class="label" for="weight-input">Peso (kg)</label><input id="weight-input" type="number" inputmode="decimal" step="0.1" placeholder="102.0" /></div>
+            <div><label class="label" for="weight-date">Fecha</label><input id="weight-date" type="date" /></div>
+          </div>
+          <button id="save-weight" class="primary-btn full top-gap">Guardar peso</button>
+          <div id="weight-list" class="weight-list"></div>
+        </article>
+
+        <article class="panel">
+          <h3>Medidas</h3>
+          <div class="macro-inputs">
+            <div><label class="label" for="waist-input">Cintura (cm)</label><input id="waist-input" type="number" inputmode="decimal" step="0.5" /></div>
+            <div><label class="label" for="hip-input">Cadera (cm)</label><input id="hip-input" type="number" inputmode="decimal" step="0.5" /></div>
+            <div><label class="label" for="measure-date">Fecha</label><input id="measure-date" type="date" /></div>
+          </div>
+          <button id="save-measure" class="secondary-btn full top-gap">Guardar medidas</button>
+          <div id="measure-list" class="macro-history top-gap"></div>
+        </article>
+
+        <article class="panel">
+          <div class="section-title-row compact-row">
+            <h3>Actividades</h3>
+            <span class="chip">Total: <strong id="km-total">—</strong></span>
+          </div>
+          <div id="activity-history" class="history-list"></div>
+        </article>
+
+        <details class="panel profile-panel">
+          <summary><h3>Mi meta y fechas</h3></summary>
+          <div class="macro-inputs">
+            <div><label class="label" for="goal-start">Peso inicial</label><input id="goal-start" type="number" inputmode="decimal" step="0.1" /></div>
+            <div><label class="label" for="goal-target">Peso objetivo</label><input id="goal-target" type="number" inputmode="decimal" step="0.1" /></div>
+            <div><label class="label" for="goal-surgery">Cirugía</label><input id="goal-surgery" type="date" /></div>
+          </div>
+          <button id="save-goals" class="primary-btn full top-gap">Guardar</button>
+          <p id="goals-saved" class="ok-note hidden">Guardado ✓</p>
+        </details>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button data-nav="home-view" class="active">Hoy</button>
+      <button data-nav="plan-view">Plan</button>
+      <button data-nav="nutrition-view">Comida</button>
+      <button data-nav="progress-view">Progreso</button>
+    </nav>
+  </div>
+
+  <script src="data/modules.js"></script>
+  <script src="data/exercise-dataset.js"></script>
+  <script src="data/foods.js"></script>
+  <script src="nutrition.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

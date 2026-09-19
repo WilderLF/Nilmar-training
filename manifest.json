@@ -1,0 +1,14 @@
+{
+  "name": "Nilmar Montilla · Entrenamiento",
+  "short_name": "Nilmar",
+  "description": "Plan de entrenamiento y nutrición por módulos: gimnasio, casa, caminatas, Camino de Santiago y viajes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EAF2FA",
+  "theme_color": "#EAF2FA",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
