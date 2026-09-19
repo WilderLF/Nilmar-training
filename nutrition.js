@@ -18,6 +18,7 @@ function defaultNutrition() {
       proteinPerKgTarget: 2.0, carbCycling: true, kcalAdjust: 0, configured: true
     },
     days: {},
+    planLog: {},
     customFoods: [],
     weights: [],
     measures: []
@@ -98,6 +99,92 @@ function removeFoodEntry(id) {
   saveState(); renderNutrition(); renderHome();
 }
 
+/* ---------------- Plan de la nutricionista ---------------- */
+
+function planChecks(dateKey = todayDateKey()) { return (n().planLog || {})[dateKey] || {}; }
+
+function togglePlanCheck(id) {
+  const key = todayDateKey();
+  n().planLog ||= {};
+  const day = { ...(n().planLog[key] || {}) };
+  day[id] = !day[id];
+  n().planLog[key] = day;
+  const keys = Object.keys(n().planLog).sort();
+  while (keys.length > 120) delete n().planLog[keys.shift()];
+  saveState(); renderPlanDiario(); renderHome();
+}
+
+function planProgress(dateKey = todayDateKey()) {
+  const c = planChecks(dateKey);
+  return { done: PLAN_CHECKS.filter(i => c[i.id]).length, total: PLAN_CHECKS.length };
+}
+
+function renderPlanDiario() {
+  if (!$("plan-today")) return;
+  const dk = todayKey();
+  const comida = PLAN_COMIDAS[dk];
+  const checks = planChecks();
+  const prog = planProgress();
+
+  $("plan-progress").textContent = `${prog.done}/${prog.total}`;
+  $("plan-day-label").textContent = DAY_LABELS[dk];
+
+  const flexAlmuerzo = comida.almuerzo === "FLEX";
+  $("plan-today").innerHTML = `
+    <div class="plan-meal">
+      <p class="eyebrow">Desayuno o merienda · elegí una</p>
+      <p class="plan-drink">${escapeHtml(PLAN_DESAYUNO_BEBIDA)}</p>
+      <ul class="plan-options">${PLAN_DESAYUNOS.map(o => `<li>${escapeHtml(o)}</li>`).join("")}</ul>
+    </div>
+    <div class="plan-meal">
+      <p class="eyebrow">Colación de mañana o tarde · elegí una</p>
+      <ul class="plan-options">${PLAN_COLACIONES.map(o => `<li>${escapeHtml(o)}</li>`).join("")}</ul>
+    </div>
+    <div class="plan-meal highlight">
+      <p class="eyebrow">Almuerzo de hoy</p>
+      ${flexAlmuerzo ? `<p class="flex-badge">FLEX · comida libre</p><p class="muted">${escapeHtml(PLAN_FLEX)}</p>`
+        : `<p class="plan-main">${escapeHtml(comida.almuerzo)}</p>`}
+    </div>
+    <div class="plan-meal">
+      <p class="eyebrow">Cena de hoy</p>
+      ${comida.cena === "FLEX"
+        ? `<p class="flex-badge">FLEX · comida libre</p><p class="muted">${escapeHtml(PLAN_FLEX)}</p>`
+        : `<ul class="plan-options">${PLAN_CENAS.map(o => `<li>${escapeHtml(o)}</li>`).join("")}</ul>`}
+    </div>`;
+
+  $("plan-checklist").innerHTML = PLAN_CHECKS.map(i => `
+    <button class="plan-check ${checks[i.id] ? "done" : ""}" data-plan-check="${i.id}">
+      <span class="tick">${checks[i.id] ? "✓" : ""}</span>${escapeHtml(i.label)}
+    </button>`).join("");
+
+  // Semana
+  const rows = [];
+  for (let i = 6; i >= 0; i--) {
+    const dt = new Date(); dt.setDate(dt.getDate() - i);
+    const key = localDateKey(dt);
+    const pr = planProgress(key);
+    if (!pr.done) continue;
+    rows.push(`<div class="hist-row"><span>${formatShortDate(key)}</span><span class="${pr.done >= 5 ? "ok" : "warn"}">${pr.done}/${pr.total} comidas</span><span>${pr.done >= 5 ? "Día cumplido" : "Parcial"}</span></div>`);
+  }
+  $("plan-week").innerHTML = rows.length ? rows.reverse().join("") : '<p class="muted">Marcá cada comida a medida que la hacés y acá vas a ver la semana.</p>';
+}
+
+function renderPlanFijo() {
+  if (!$("plan-semaforo-si")) return;
+  $("plan-semaforo-si").innerHTML = PLAN_SEMAFORO.si.map(x => `<li>${escapeHtml(x)}</li>`).join("");
+  $("plan-semaforo-no").innerHTML = PLAN_SEMAFORO.no.map(x => `<li>${escapeHtml(x)}</li>`).join("");
+  $("plan-semaforo-nota").textContent = PLAN_SEMAFORO.nota;
+  $("plan-platos").innerHTML = PLAN_PLATOS.map(p => `
+    <div class="plato">
+      <strong>${escapeHtml(p.titulo)}</strong>
+      <div class="plato-bar">${p.partes.map(([txt, cls]) => `<span class="pt-${cls}">${escapeHtml(txt)}</span>`).join("")}</div>
+      <small>${escapeHtml(p.detalle)}</small>
+    </div>`).join("");
+  $("plan-recomendaciones").innerHTML = PLAN_RECOMENDACIONES.map(x => `<li>${escapeHtml(x)}</li>`).join("");
+  $("plan-profesional").innerHTML = `${escapeHtml(PLAN_PROFESIONAL.nombre)} · ${escapeHtml(PLAN_PROFESIONAL.matricula)}<br>
+    <span class="muted">${escapeHtml(PLAN_PROFESIONAL.estudio)} · ${escapeHtml(PLAN_PROFESIONAL.contacto)}</span>`;
+}
+
 /* ---------------- Render: nutrición ---------------- */
 
 function macroBar(label, value, target, unit, cls) {
@@ -112,18 +199,21 @@ function macroBar(label, value, target, unit, cls) {
 function renderNutritionMini() {
   const box = $("nutrition-mini");
   if (!box) return;
-  const t = nutritionTargets(todayDay().type);
-  const tot = dayTotals();
+  const pr = planProgress();
+  const comida = PLAN_COMIDAS[todayKey()];
+  const esFlex = comida.almuerzo === "FLEX";
   box.innerHTML = `
     <div class="section-title-row compact-row">
-      <div><p class="eyebrow">Comida de hoy</p><h3>${Math.round(tot.kcal)} / ${t.kcal} kcal</h3></div>
-      <button class="ghost-btn small-btn" data-nav="nutrition-view">Registrar</button>
+      <div><p class="eyebrow">Plan de hoy · Lic. Nacul</p><h3>${pr.done}/${pr.total} comidas</h3></div>
+      <button class="ghost-btn small-btn" data-nav="nutrition-view">Ver plan</button>
     </div>
-    ${macroBar("Proteína", tot.p, t.protein, "g", "m-p")}`;
+    <p class="muted">${esFlex ? "Almuerzo FLEX: comida libre." : "Almuerzo: " + escapeHtml(comida.almuerzo)}</p>`;
 }
 
 function renderNutrition() {
   if (!$("nutrition-view")) return;
+  renderPlanDiario();
+  renderPlanFijo();
   const d = todayDay();
   const t = nutritionTargets(d.type);
   const tot = dayTotals();
@@ -367,6 +457,7 @@ function setupNutritionEvents() {
   $("save-profile").addEventListener("click", saveProfile);
   $("nutrition-view").addEventListener("click", e => {
     const rf = e.target.closest("[data-remove-food]"); if (rf) removeFoodEntry(rf.dataset.removeFood);
+    const pc = e.target.closest("[data-plan-check]"); if (pc) togglePlanCheck(pc.dataset.planCheck);
   });
 
   // Progreso

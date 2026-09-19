@@ -215,19 +215,55 @@
       <!-- ============ NUTRICIÓN ============ -->
       <section id="nutrition-view" class="view">
         <div class="section-title-row">
-          <div><p class="eyebrow">Bajar grasa, cuidar el músculo</p><h2>Nutrición</h2></div>
+          <div><p class="eyebrow">Plan de alimentación</p><h2>Comida</h2></div>
+          <span class="chip"><strong id="plan-progress">0/6</strong></span>
         </div>
 
-        <article class="panel nut-summary">
-          <p class="eyebrow" id="nut-day-type">Hoy</p>
-          <div class="kcal-line"><strong id="nut-kcal">0 / 0</strong><span>kcal</span></div>
-          <p id="nut-day-note" class="muted"></p>
-          <p id="nut-floor-warning" class="warn-note hidden">El cálculo llegó al piso de 1.400 kcal. No conviene bajar de ahí: menos comida no acelera el resultado, pero sí hace perder músculo y pelo.</p>
-          <div id="nut-bars" class="macro-bars"></div>
+        <article class="panel plan-card">
+          <div class="section-title-row compact-row">
+            <h3>Tu plan de <span id="plan-day-label">hoy</span></h3>
+          </div>
+          <div id="plan-checklist" class="plan-checklist"></div>
+          <div id="plan-today" class="plan-today"></div>
         </article>
 
         <article class="panel">
-          <h3>Agregar comida</h3>
+          <h3>Armado de platos</h3>
+          <div id="plan-platos" class="platos"></div>
+        </article>
+
+        <article class="panel">
+          <h3>El semáforo</h3>
+          <div class="semaforo">
+            <div class="sem-col si"><p class="sem-head">Sí</p><ul id="plan-semaforo-si"></ul></div>
+            <div class="sem-col no"><p class="sem-head">No</p><ul id="plan-semaforo-no"></ul></div>
+          </div>
+          <p id="plan-semaforo-nota" class="dataset-note"></p>
+        </article>
+
+        <article class="panel note-panel">
+          <h3>Recomendaciones</h3>
+          <ul id="plan-recomendaciones" class="keys-list"></ul>
+          <p class="dataset-note">Plan elaborado por <span id="plan-profesional"></span></p>
+        </article>
+
+        <article class="panel">
+          <h3>Esta semana</h3>
+          <div id="plan-week" class="macro-history"></div>
+        </article>
+
+        <details class="panel profile-panel">
+          <summary><h3>Registro libre y macros (opcional)</h3></summary>
+          <p class="dataset-note">Solo si querés llevar la cuenta con números. El plan de arriba es el que manda; esto es una referencia.</p>
+
+          <div class="nut-summary top-gap">
+            <p class="eyebrow" id="nut-day-type">Hoy</p>
+            <div class="kcal-line"><strong id="nut-kcal">0 / 0</strong><span>kcal de referencia</span></div>
+            <p id="nut-day-note" class="muted"></p>
+            <p id="nut-floor-warning" class="warn-note hidden">El cálculo llegó al piso de 1.400 kcal. No conviene bajar de ahí.</p>
+            <div id="nut-bars" class="macro-bars"></div>
+          </div>
+
           <label class="label" for="food-select">Alimento</label>
           <select id="food-select"></select>
           <div class="food-form-row">
@@ -262,26 +298,19 @@
             <p id="cf-error" class="warn-note hidden">Poné un nombre y al menos un macronutriente.</p>
             <button id="add-custom-food" class="secondary-btn full">Agregar personalizado</button>
           </details>
-        </article>
 
-        <article class="panel">
-          <h3>Comidas de hoy</h3>
+          <h3 class="top-gap">Comidas registradas hoy</h3>
           <div id="food-log" class="food-log"></div>
-        </article>
 
-        <article class="panel">
-          <h3>Últimos 7 días</h3>
+          <h3 class="top-gap">Últimos 7 días</h3>
           <div id="macro-history" class="macro-history"></div>
-        </article>
 
-        <details class="panel profile-panel">
-          <summary><h3>Mi perfil y cálculo</h3></summary>
+          <h3 class="top-gap">Mi perfil y cálculo</h3>
           <div class="macro-inputs">
             <div><label class="label" for="pf-height">Altura (cm)</label><input id="pf-height" type="number" inputmode="numeric" /></div>
             <div><label class="label" for="pf-age">Edad</label><input id="pf-age" type="number" inputmode="numeric" /></div>
             <div><label class="label" for="pf-weight">Peso (kg)</label><input id="pf-weight" type="number" inputmode="decimal" step="0.1" /></div>
           </div>
-          <p class="dataset-note">Si registrás tu peso en Progreso, se usa el promedio de los últimos 7 días.</p>
           <label class="label" for="pf-activity">Nivel de actividad</label>
           <select id="pf-activity"></select>
           <label class="label" for="pf-goal">Objetivo</label>
@@ -299,7 +328,7 @@
           </div>
           <label class="label" for="pf-protein">Proteína: <span id="pf-protein-label">2 g/kg</span></label>
           <input id="pf-protein" type="range" min="1.6" max="2.4" step="0.1" />
-          <label class="check-row"><input id="pf-carbcycle" type="checkbox" /> Ajustar calorías según el día (más en días de fuerza, menos en días de descanso)</label>
+          <label class="check-row"><input id="pf-carbcycle" type="checkbox" /> Ajustar calorías según el día</label>
           <button id="save-profile" class="primary-btn full top-gap">Guardar perfil</button>
           <p id="pf-saved" class="ok-note hidden">Perfil guardado ✓</p>
           <div id="pf-summary" class="pf-summary"></div>
@@ -383,6 +412,7 @@
   <script src="data/modules.js"></script>
   <script src="data/exercise-dataset.js"></script>
   <script src="data/foods.js"></script>
+  <script src="data/plan-alimentacion.js"></script>
   <script src="nutrition.js"></script>
   <script src="app.js"></script>
 </body>

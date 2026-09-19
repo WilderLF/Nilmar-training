@@ -1,7 +1,7 @@
-const CACHE_NAME = "nilmar-training-v1";
+const CACHE_NAME = "nilmar-training-v2";
 const APP_ASSETS = [
   "./", "./index.html", "./styles.css", "./app.js", "./nutrition.js",
-  "./data/modules.js", "./data/exercise-dataset.js", "./data/foods.js",
+  "./data/modules.js", "./data/exercise-dataset.js", "./data/foods.js", "./data/plan-alimentacion.js",
   "./manifest.json", "./assets/isologo.png", "./icons/icon-192.png", "./icons/icon-512.png"
 ];
 self.addEventListener("install", event => {

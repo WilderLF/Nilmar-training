@@ -54,16 +54,16 @@ Fuera de cualquier bloque se usa el módulo por defecto. Los bloques se agregan 
 
 ## Nutrición
 
-- Gasto estimado con Mifflin-St Jeor × nivel de actividad.
-- Déficit según ritmo elegido: 0,4 / 0,5 (por defecto) / 0,65 kg por semana.
-- **Piso de seguridad: nunca calcula menos de 1.400 kcal.**
-- Proteína alta calculada sobre el peso objetivo (2 g/kg de 80 kg = 160 g), que es lo que conserva el músculo durante la bajada.
-- Grasas 30% de las calorías; carbohidratos, el resto.
-- Ajuste por día: más calorías en días de fuerza, menos en días de descanso.
-- **Días de etapa larga (Camino): come a mantenimiento, sin déficit.**
-- Registro de comidas con base de alimentos comunes + alimentos propios.
+La pantalla **Comida** muestra el plan de la **Lic. Solana María Nacul (M.P. 336)**, que es la referencia principal de la app:
 
-Con 102 kg, 165 cm y 34 años, el cálculo inicial da ~2.370 kcal de gasto, 1.920 kcal en días de fuerza y 1.670 kcal en días tranquilos, con 160 g de proteína.
+- **Plan del día**: opciones de desayuno o merienda, colación, el almuerzo puntual de ese día de la semana y las opciones de cena. Con checklist para marcar cada comida.
+- **FLEX** (sábado a la noche y domingo) aparece marcado como comida libre dentro del plan, no como una excepción.
+- **Armado de platos**: los tres modelos (animal + vegetal; animal + almidón + vegetal; almidón + queso y huevo + vegetal).
+- **El semáforo**: listas de sí y no.
+- **Recomendaciones**: agua, poca sal, comer lento y masticar, oliva y limón, ordenar las comidas.
+- **Esta semana**: cuántas comidas del plan cumplió cada día.
+
+El cálculo de calorías y macros quedó como sección opcional y colapsada, con el registro libre de alimentos. Sirve de referencia si alguna vez quiere ver números, pero el plan de la nutricionista es el que manda. Si en algún momento el plan cambia, se edita en `data/plan-alimentacion.js`.
 
 ## Progreso
 
@@ -76,10 +76,11 @@ Con 102 kg, 165 cm y 34 años, el cálculo inicial da ~2.370 kcal de gasto, 1.92
 
 ## Técnico
 
+- HTML/CSS/JS sin dependencias. El plan de alimentación vive en `data/plan-alimentacion.js` y los módulos de entrenamiento en `data/modules.js`: se editan sin tocar el resto.
 - HTML/CSS/JS sin dependencias. `localStorage` para los datos, service worker para uso sin conexión.
 - Las animaciones de ejercicios vienen del dataset público de Gym Visual; los 31 ejercicios del plan fueron verificados uno por uno para que muestren el movimiento correcto.
 - Rutas relativas: se puede publicar en cualquier subcarpeta (GitHub Pages, Netlify, Vercel).
 
 ## Aviso
 
-La app organiza entrenamiento y comida, no reemplaza a un médico. Antes de una cirugía programada y con un plan de pérdida de peso conviene que un profesional revise los números, y el módulo post-operatorio depende siempre de lo que indique la cirujana.
+El plan de alimentación es de la Lic. Solana María Nacul; la app solo lo muestra y ayuda a cumplirlo. El entrenamiento lo organiza la app, pero no reemplaza a un médico. Antes de una cirugía programada y con un plan de pérdida de peso conviene que un profesional revise los números, y el módulo post-operatorio depende siempre de lo que indique la cirujana.
