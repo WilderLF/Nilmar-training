@@ -71,7 +71,8 @@ El cálculo de calorías y macros quedó como sección opcional y colapsada, con
 - Gráfico de peso con promedio de 7 días y línea de meta.
 - Proyección: calcula el ritmo real de las últimas 4 semanas y estima cuándo llegaría a los 80 kg y con cuánto peso llegaría a la cirugía.
 - Avisos: si baja más de 1 kg por semana, sugiere sumar calorías (ahí es donde se pierde músculo).
-- Medidas de cintura y cadera: cuando la balanza se traba, las medidas siguen bajando.
+- **Medidas**: cuello, pecho/senos, cintura, abdomen (ombligo), cadera, brazo y muslo, con nota opcional por medición. Tabla comparativa entre la primera y la última toma, con el total de centímetros perdidos.
+- Vienen cargadas las mediciones del **18/07** (cuello 38, pecho 127, cintura 108, cadera 129, abdomen 133) y del **29/08** (37, 121, 107, 126, 126).
 - Historial de actividades con kilómetros acumulados.
 
 ## Técnico

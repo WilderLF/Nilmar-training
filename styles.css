@@ -346,3 +346,17 @@ input[type=range] { padding: 0; accent-color: var(--accent); background: transpa
   .plan-checklist { grid-template-columns: repeat(2, 1fr); }
   .semaforo { grid-template-columns: 1fr; }
 }
+
+
+/* ---------- medidas ---------- */
+.measure-compare { display: grid; gap: 5px; margin-top: 12px; }
+.measure-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr .9fr; gap: 6px; align-items: center; font-size: 13px; background: #F6F8FB; border-radius: 10px; padding: 9px 10px; }
+.measure-row.head { background: transparent; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 0 10px 2px; }
+.measure-row .ok { color: #3E7A00; font-weight: 700; }
+.measure-row .warn { color: #B26A00; font-weight: 700; }
+.measure-list { display: grid; gap: 7px; }
+.measure-item { display: flex; justify-content: space-between; align-items: start; gap: 10px; background: #F6F8FB; border-radius: 12px; padding: 10px 11px; }
+.measure-item strong { font-size: 13.5px; display: block; }
+.measure-item small { font-size: 12px; color: var(--muted); display: block; line-height: 1.4; }
+.measure-item small.nota { font-style: italic; margin-top: 3px; }
+@media (max-width: 400px) { .measure-row { grid-template-columns: 1.3fr 1fr 1fr 1fr; font-size: 12px; } }

@@ -8,6 +8,25 @@
    ============================================================ */
 
 const KCAL_FLOOR = 1400;
+
+// Medidas corporales que registra la app (en cm)
+const MEASURE_FIELDS = [
+  { id: "cuello", label: "Cuello" },
+  { id: "pecho", label: "Pecho / senos" },
+  { id: "cintura", label: "Cintura" },
+  { id: "abdomen", label: "Abdomen (ombligo)" },
+  { id: "cadera", label: "Cadera" },
+  { id: "brazo", label: "Brazo" },
+  { id: "muslo", label: "Muslo" }
+];
+
+// Mediciones ya tomadas, cargadas como punto de partida.
+const MEASURES_BASE = [
+  { date: "2026-07-18", cuello: 38, pecho: 127, cintura: 108, cadera: 129, abdomen: 133,
+    nota: "Referencia inicial (alrededor de 115 kg). El abdomen se había registrado como \"cadera + abdomen\"." },
+  { date: "2026-08-29", cuello: 37, pecho: 121, cintura: 107, cadera: 126, abdomen: 126,
+    nota: "Abdomen medido por el ombligo: el punto anatómico no es igual al de julio, así que los −7 cm no son comparación exacta." }
+];
 const DAY_ADJ = { strength: 100, walk: 50, mobility: -100, rest: -150, trek: 0 };
 
 function defaultNutrition() {
@@ -46,6 +65,25 @@ function weightStats() {
     // ritmo semanal usando 4 semanas (más estable que 7 días)
     rate4w: avg28 != null && prev28 != null ? (avg28 - prev28) / 4 : (avg7 != null && prevAvg7 != null ? avg7 - prevAvg7 : null)
   };
+}
+
+function migrateMeasures() {
+  const nu = n();
+  nu.measures = (nu.measures || []).map(m => {
+    if (m.waist != null || m.hip != null) {
+      const { waist, hip, ...resto } = m;
+      return { ...resto, cintura: resto.cintura ?? waist ?? null, cadera: resto.cadera ?? hip ?? null };
+    }
+    return m;
+  });
+  if (!nu.seededMeasures) {
+    MEASURES_BASE.forEach(base => {
+      if (!nu.measures.some(m => m.date === base.date)) nu.measures.push({ ...base });
+    });
+    nu.measures.sort((a, b) => a.date.localeCompare(b.date));
+    nu.seededMeasures = true;
+    saveState();
+  }
 }
 
 function currentWeight() {
@@ -394,15 +432,48 @@ function renderProgress() {
     <div class="weight-item"><span>${formatShortDate(e.date)}</span><strong>${fmt1(e.kg)} kg</strong>
     <button class="icon-btn" data-remove-weight="${e.date}" aria-label="Eliminar">✕</button></div>`).join("");
 
-  const ms = [...(n().measures || [])].sort((a, b) => b.date.localeCompare(a.date));
-  $("measure-date").value ||= todayDateKey();
-  $("measure-list").innerHTML = ms.length
-    ? `<div class="hist-row head"><span>Fecha</span><span>Cintura</span><span>Cadera</span></div>` +
-      ms.slice(0, 6).map(m => `<div class="hist-row"><span>${formatShortDate(m.date)}</span><span>${m.waist ? fmt1(m.waist) + " cm" : "—"}</span><span>${m.hip ? fmt1(m.hip) + " cm" : "—"}</span></div>`).join("") +
-      (ms.length > 1 ? `<p class="dataset-note">Cuando la balanza se traba, las medidas siguen bajando: ahí se ve la recomposición.</p>` : "")
-    : '<p class="muted">Tomate cintura y cadera una vez por mes.</p>';
+  renderMeasures();
 
   renderActivityHistory();
+}
+
+function renderMeasures() {
+  const ms = [...(n().measures || [])].sort((a, b) => a.date.localeCompare(b.date));
+  $("measure-date").value ||= todayDateKey();
+  if (!ms.length) {
+    $("measure-compare").innerHTML = '<p class="muted">Tomate las medidas y vas a poder comparar contra la primera vez.</p>';
+    $("measure-list").innerHTML = "";
+    return;
+  }
+  const first = ms[0], last = ms[ms.length - 1];
+  const rows = MEASURE_FIELDS.filter(f => first[f.id] != null || last[f.id] != null).map(f => {
+    const a = first[f.id], b = last[f.id];
+    const diff = (a != null && b != null && ms.length > 1) ? b - a : null;
+    const cls = diff == null ? "" : (diff < 0 ? "ok" : (diff > 0 ? "warn" : ""));
+    return `<div class="measure-row">
+      <span>${f.label}</span>
+      <span>${a != null ? fmt1(a) + " cm" : "—"}</span>
+      <span><strong>${b != null ? fmt1(b) + " cm" : "—"}</strong></span>
+      <span class="${cls}">${diff == null ? "—" : (diff > 0 ? "+" : "") + fmt1(diff) + " cm"}</span>
+    </div>`;
+  }).join("");
+  const totalCm = MEASURE_FIELDS.reduce((acc, f) => {
+    const a = first[f.id], b = last[f.id];
+    return acc + (a != null && b != null ? Math.max(0, a - b) : 0);
+  }, 0);
+  $("measure-compare").innerHTML = `
+    <div class="measure-row head"><span>Medida</span><span>${formatShortDate(first.date)}</span><span>${formatShortDate(last.date)}</span><span>Cambio</span></div>
+    ${rows}
+    ${ms.length > 1 && totalCm > 0 ? `<p class="dataset-note"><strong>${fmt1(totalCm)} cm menos</strong> en total entre la primera y la última medición. Cuando la balanza se traba, esto sigue bajando: es la mejor señal de que estás perdiendo grasa y no músculo.</p>` : ""}
+    ${last.nota ? `<p class="dataset-note">Última nota: ${escapeHtml(last.nota)}</p>` : ""}`;
+
+  $("measure-list").innerHTML = [...ms].reverse().slice(0, 8).map(m => {
+    const vals = MEASURE_FIELDS.filter(f => m[f.id] != null).map(f => `${f.label} ${fmt1(m[f.id])}`).join(" · ");
+    return `<div class="measure-item">
+      <div><strong>${formatShortDate(m.date)}</strong><small>${vals || "Sin datos"}</small>${m.nota ? `<small class="nota">${escapeHtml(m.nota)}</small>` : ""}</div>
+      <button class="icon-btn" data-remove-measure="${m.date}" aria-label="Eliminar">✕</button>
+    </div>`;
+  }).join("");
 }
 
 function weightChartSvg(list, target) {
@@ -470,13 +541,27 @@ function setupNutritionEvents() {
     saveState(); $("weight-input").value = ""; renderProgress(); renderHome(); renderNutrition();
   });
   $("save-measure").addEventListener("click", () => {
-    const waist = parseFloat($("waist-input").value), hip = parseFloat($("hip-input").value);
     const date = $("measure-date").value || todayDateKey();
-    if (!(waist > 0) && !(hip > 0)) return;
-    n().measures = [...(n().measures || []).filter(e => e.date !== date), { date, waist: waist > 0 ? waist : null, hip: hip > 0 ? hip : null }]
-      .sort((a, b) => a.date.localeCompare(b.date)).slice(-120);
-    saveState(); $("waist-input").value = ""; $("hip-input").value = ""; renderProgress();
+    const entry = { date };
+    let any = false;
+    MEASURE_FIELDS.forEach(f => {
+      const v = parseFloat($(`m-${f.id}`).value);
+      if (v > 0 && v < 300) { entry[f.id] = v; any = true; }
+    });
+    const nota = $("measure-note").value.trim();
+    if (nota) entry.nota = nota;
+    if (!any) { $("measure-error").classList.remove("hidden"); return; }
+    $("measure-error").classList.add("hidden");
+    // Si ya existe esa fecha, se completa en vez de pisarse.
+    const prev = (n().measures || []).find(m => m.date === date) || {};
+    n().measures = [...(n().measures || []).filter(m => m.date !== date), { ...prev, ...entry }]
+      .sort((a, b) => a.date.localeCompare(b.date)).slice(-160);
+    saveState();
+    MEASURE_FIELDS.forEach(f => { $(`m-${f.id}`).value = ""; });
+    $("measure-note").value = "";
+    renderProgress();
   });
+
   $("apply-kcal-adjust").addEventListener("click", e => {
     n().profile.kcalAdjust = (n().profile.kcalAdjust || 0) + Number(e.currentTarget.dataset.adjust);
     saveState(); renderProgress(); renderNutrition(); renderHome();
@@ -485,5 +570,7 @@ function setupNutritionEvents() {
   $("progress-view").addEventListener("click", e => {
     const rw = e.target.closest("[data-remove-weight]");
     if (rw) { n().weights = n().weights.filter(w => w.date !== rw.dataset.removeWeight); saveState(); renderProgress(); }
+    const rm = e.target.closest("[data-remove-measure]");
+    if (rm) { n().measures = n().measures.filter(m => m.date !== rm.dataset.removeMeasure); saveState(); renderProgress(); }
   });
 }

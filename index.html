@@ -371,13 +371,28 @@
 
         <article class="panel">
           <h3>Medidas</h3>
-          <div class="macro-inputs">
-            <div><label class="label" for="waist-input">Cintura (cm)</label><input id="waist-input" type="number" inputmode="decimal" step="0.5" /></div>
-            <div><label class="label" for="hip-input">Cadera (cm)</label><input id="hip-input" type="number" inputmode="decimal" step="0.5" /></div>
-            <div><label class="label" for="measure-date">Fecha</label><input id="measure-date" type="date" /></div>
-          </div>
-          <button id="save-measure" class="secondary-btn full top-gap">Guardar medidas</button>
-          <div id="measure-list" class="macro-history top-gap"></div>
+          <div id="measure-compare" class="measure-compare"></div>
+
+          <details class="instructions-box top-gap">
+            <summary>Cargar nuevas medidas</summary>
+            <div class="macro-inputs">
+              <div><label class="label" for="m-cuello">Cuello (cm)</label><input id="m-cuello" type="number" inputmode="decimal" step="0.5" /></div>
+              <div><label class="label" for="m-pecho">Pecho / senos</label><input id="m-pecho" type="number" inputmode="decimal" step="0.5" /></div>
+              <div><label class="label" for="m-cintura">Cintura</label><input id="m-cintura" type="number" inputmode="decimal" step="0.5" /></div>
+              <div><label class="label" for="m-abdomen">Abdomen (ombligo)</label><input id="m-abdomen" type="number" inputmode="decimal" step="0.5" /></div>
+              <div><label class="label" for="m-cadera">Cadera</label><input id="m-cadera" type="number" inputmode="decimal" step="0.5" /></div>
+              <div><label class="label" for="m-brazo">Brazo</label><input id="m-brazo" type="number" inputmode="decimal" step="0.5" /></div>
+              <div><label class="label" for="m-muslo">Muslo</label><input id="m-muslo" type="number" inputmode="decimal" step="0.5" /></div>
+              <div><label class="label" for="measure-date">Fecha</label><input id="measure-date" type="date" /></div>
+            </div>
+            <label class="label" for="measure-note">Nota (opcional)</label>
+            <input id="measure-note" type="text" placeholder="Ej: medido en ayunas, por el ombligo" />
+            <p id="measure-error" class="warn-note hidden">Cargá al menos una medida.</p>
+            <button id="save-measure" class="primary-btn full top-gap">Guardar medidas</button>
+            <p class="dataset-note">Medite siempre en el mismo punto y a la misma hora, sin apretar la cinta. Una vez por mes alcanza.</p>
+          </details>
+
+          <div id="measure-list" class="measure-list top-gap"></div>
         </article>
 
         <article class="panel">
