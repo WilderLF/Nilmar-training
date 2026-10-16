@@ -1,4 +1,4 @@
-const CACHE_NAME = "nilmar-training-v2";
+const CACHE_NAME = "nilmar-training-v3-calorias";
 const APP_ASSETS = [
   "./", "./index.html", "./styles.css", "./app.js", "./nutrition.js",
   "./data/modules.js", "./data/exercise-dataset.js", "./data/foods.js", "./data/plan-alimentacion.js",

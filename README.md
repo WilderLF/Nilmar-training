@@ -52,18 +52,39 @@ En **Plan → Mis bloques** se asigna un módulo a un rango de fechas. Ya vienen
 
 Fuera de cualquier bloque se usa el módulo por defecto. Los bloques se agregan y borran desde la app: si un mes quiere hacer solo caminatas, crea el bloque y listo.
 
-## Nutrición
+## Comida (calorías y registro)
 
-La pantalla **Comida** muestra el plan de la **Lic. Solana María Nacul (M.P. 336)**, que es la referencia principal de la app:
+La pantalla **Comida** arranca con el objetivo de calorías del día:
 
-- **Plan del día**: opciones de desayuno o merienda, colación, el almuerzo puntual de ese día de la semana y las opciones de cena. Con checklist para marcar cada comida.
-- **FLEX** (sábado a la noche y domingo) aparece marcado como comida libre dentro del plan, no como una excepción.
-- **Armado de platos**: los tres modelos (animal + vegetal; animal + almidón + vegetal; almidón + queso y huevo + vegetal).
-- **El semáforo**: listas de sí y no.
-- **Recomendaciones**: agua, poca sal, comer lento y masticar, oliva y limón, ordenar las comidas.
-- **Esta semana**: cuántas comidas del plan cumplió cada día.
+- **Anillo grande** con las calorías que le quedan, el objetivo y lo que lleva comido.
+- **Barras de proteína, carbohidratos y grasas** con lo que falta de cada una.
+- **Registro por gramos**: cada alimento guarda sus macros por 100 g y se puede cargar cualquier cantidad (125 g de pollo, 170 g de yogur). También admite medidas caseras (unidad, feta, cda, taza, lata, scoop) y muestra el equivalente en gramos.
+- **Alimentos propios**: se cargan como vienen en la etiqueta ("estos valores corresponden a 100 g") y después se registran en cualquier cantidad.
+- **Lo que comiste hoy**, agrupado por comida y con el subtotal de cada una.
 
-El cálculo de calorías y macros quedó como sección opcional y colapsada, con el registro libre de alimentos. Sirve de referencia si alguna vez quiere ver números, pero el plan de la nutricionista es el que manda. Si en algún momento el plan cambia, se edita en `data/plan-alimentacion.js`.
+### Calorías según si entrena o no
+
+El nivel de actividad del perfil es **solo la vida diaria sin ejercicio**; el entrenamiento se suma por día. Así un día sin entrenar come menos y nada se cuenta dos veces.
+
+| Día | Extra | Objetivo |
+|---|---|---|
+| 🛋️ No entrené | — | 1.690 kcal |
+| 🚶‍♀️ Movimiento suave | +120 | 1.810 kcal |
+| 🏃‍♀️ Caminata o cardio | +220 | 1.910 kcal |
+| 🏋️‍♀️ Gimnasio o fuerza | +280 | 1.970 kcal |
+| ⛰️ Día muy activo | +450 | 2.140 kcal |
+
+Se elige con los botones de "¿Entrenaste hoy?". La app propone lo que indica el plan de ese día, pero manda lo que ella marque. Guarda el dato por fecha, así el histórico de 7 días muestra con qué objetivo se comparaba cada día.
+
+Debajo aparece el contador **"Últimos 7 días: X de 5 entrenamientos"**, con la meta de 5 días por semana.
+
+La proteína se mantiene fija en 160 g todos los días (2 g por kg de los 80 kg de meta): es lo que protege el músculo mientras baja de peso. Lo que cambia entre un día y otro son los carbohidratos.
+
+**Piso de seguridad:** el cálculo nunca baja de 1.400 kcal.
+
+## El plan de la nutricionista
+
+Debajo del contador sigue el plan de la **Lic. Solana María Nacul (M.P. 336)**: el menú del día con checklist, el armado de platos, el semáforo y las recomendaciones. El plan es la referencia de qué comer; el contador de calorías es la referencia de cuánto.
 
 ## Progreso
 

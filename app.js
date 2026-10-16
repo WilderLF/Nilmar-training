@@ -471,6 +471,7 @@ function renderGoalsForm() {
 }
 
 function init() {
+  migrateProfile();
   migrateMeasures();
   setupEvents();
   renderGoalsForm();

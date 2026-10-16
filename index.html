@@ -215,9 +215,73 @@
       <!-- ============ NUTRICIÓN ============ -->
       <section id="nutrition-view" class="view">
         <div class="section-title-row">
-          <div><p class="eyebrow">Plan de alimentación</p><h2>Comida</h2></div>
+          <div><p class="eyebrow">Tus calorías de hoy</p><h2>Comida</h2></div>
           <span class="chip"><strong id="plan-progress">0/6</strong></span>
         </div>
+
+        <article id="kcal-card" class="panel kcal-card">
+          <div class="kcal-top">
+            <div id="kcal-ring-box"></div>
+            <div id="kcal-numbers" class="kcal-numbers"></div>
+          </div>
+          <p id="nut-floor-warning" class="warn-note hidden">El cálculo llegó al piso de 1.400 kcal. No conviene bajar de ahí: menos comida no acelera el resultado, pero sí hace perder músculo y pelo.</p>
+          <div id="nut-bars" class="macro-bars"></div>
+          <p id="protein-hint" class="dataset-note"></p>
+
+          <div class="section-title-row compact-row top-gap">
+            <label class="label no-gap">¿Entrenaste hoy?</label>
+            <span id="week-training" class="week-training"></span>
+          </div>
+          <div id="training-chips" class="training-chips"></div>
+          <p id="training-note" class="feedback-note"></p>
+        </article>
+
+        <article class="panel">
+          <h3>Agregar comida</h3>
+          <label class="label" for="food-select">Alimento</label>
+          <select id="food-select"></select>
+          <label class="label" for="food-qty">Cantidad</label>
+          <div class="qty-row">
+            <button class="ghost-btn qty-btn" data-qty-step="-1" aria-label="Menos">−</button>
+            <input id="food-qty" type="number" inputmode="decimal" min="0" step="1" value="100" />
+            <button class="ghost-btn qty-btn" data-qty-step="1" aria-label="Más">+</button>
+            <select id="food-measure" aria-label="Unidad de medida"></select>
+          </div>
+          <label class="label" for="meal-select">¿En qué comida?</label>
+          <select id="meal-select"></select>
+          <p id="food-preview" class="food-preview"></p>
+          <button id="add-food" class="primary-btn full">Agregar</button>
+          <p id="food-added" class="ok-note hidden"></p>
+
+          <details class="instructions-box top-gap">
+            <summary>Alimento que no está en la lista</summary>
+            <label class="label" for="cf-name">Nombre</label>
+            <input id="cf-name" type="text" placeholder="Ej: Milanesa de pollo al horno" />
+            <label class="label">Estos valores corresponden a…</label>
+            <div class="base-row">
+              <input id="cf-base" type="number" inputmode="decimal" min="1" step="1" value="100" />
+              <select id="cf-unit-type">
+                <option value="g">gramos</option>
+                <option value="ml">mililitros</option>
+                <option value="u">unidades</option>
+              </select>
+            </div>
+            <div class="macro-inputs">
+              <div><label class="label" for="cf-p">Proteína (g)</label><input id="cf-p" type="number" inputmode="decimal" min="0" step="0.1" /></div>
+              <div><label class="label" for="cf-c">Carbos (g)</label><input id="cf-c" type="number" inputmode="decimal" min="0" step="0.1" /></div>
+              <div><label class="label" for="cf-f">Grasas (g)</label><input id="cf-f" type="number" inputmode="decimal" min="0" step="0.1" /></div>
+            </div>
+            <p class="dataset-note">Cargalos como vienen en la etiqueta, que casi siempre es por 100 g. Después vas a poder registrar cualquier cantidad y la app calcula sola.</p>
+            <label class="check-row"><input id="cf-save" type="checkbox" checked /> Guardar en "Mis alimentos"</label>
+            <p id="cf-error" class="warn-note hidden">Completá el nombre, la cantidad de referencia y al menos un macronutriente.</p>
+            <button id="add-custom-food" class="secondary-btn full">Agregar</button>
+          </details>
+        </article>
+
+        <article class="panel">
+          <h3>Lo que comiste hoy</h3>
+          <div id="food-log" class="food-log"></div>
+        </article>
 
         <article class="panel plan-card">
           <div class="section-title-row compact-row">
@@ -252,61 +316,14 @@
           <div id="plan-week" class="macro-history"></div>
         </article>
 
-        <details class="panel profile-panel">
-          <summary><h3>Registro libre y macros (opcional)</h3></summary>
-          <p class="dataset-note">Solo si querés llevar la cuenta con números. El plan de arriba es el que manda; esto es una referencia.</p>
-
-          <div class="nut-summary top-gap">
-            <p class="eyebrow" id="nut-day-type">Hoy</p>
-            <div class="kcal-line"><strong id="nut-kcal">0 / 0</strong><span>kcal de referencia</span></div>
-            <p id="nut-day-note" class="muted"></p>
-            <p id="nut-floor-warning" class="warn-note hidden">El cálculo llegó al piso de 1.400 kcal. No conviene bajar de ahí.</p>
-            <div id="nut-bars" class="macro-bars"></div>
-          </div>
-
-          <label class="label" for="food-select">Alimento</label>
-          <select id="food-select"></select>
-          <div class="food-form-row">
-            <div>
-              <label class="label" for="food-qty">Porciones</label>
-              <div class="qty-row">
-                <button class="ghost-btn qty-btn" data-qty-step="-0.5" aria-label="Menos">−</button>
-                <input id="food-qty" type="number" inputmode="decimal" min="0.25" step="0.25" value="1" />
-                <button class="ghost-btn qty-btn" data-qty-step="0.5" aria-label="Más">+</button>
-              </div>
-            </div>
-            <div>
-              <label class="label" for="meal-select">Comida</label>
-              <select id="meal-select"></select>
-            </div>
-          </div>
-          <p id="food-preview" class="food-preview"></p>
-          <button id="add-food" class="primary-btn full">Agregar</button>
-
-          <details class="instructions-box top-gap">
-            <summary>Alimento personalizado (leé la etiqueta)</summary>
-            <label class="label" for="cf-name">Nombre</label>
-            <input id="cf-name" type="text" placeholder="Ej: Milanesa de pollo al horno" />
-            <label class="label" for="cf-unit">Porción</label>
-            <input id="cf-unit" type="text" placeholder="Ej: 1 unidad (150 g)" />
-            <div class="macro-inputs">
-              <div><label class="label" for="cf-p">Proteína (g)</label><input id="cf-p" type="number" inputmode="decimal" min="0" step="0.1" /></div>
-              <div><label class="label" for="cf-c">Carbos (g)</label><input id="cf-c" type="number" inputmode="decimal" min="0" step="0.1" /></div>
-              <div><label class="label" for="cf-f">Grasas (g)</label><input id="cf-f" type="number" inputmode="decimal" min="0" step="0.1" /></div>
-            </div>
-            <label class="check-row"><input id="cf-save" type="checkbox" checked /> Guardar en "Mis alimentos"</label>
-            <p id="cf-error" class="warn-note hidden">Poné un nombre y al menos un macronutriente.</p>
-            <button id="add-custom-food" class="secondary-btn full">Agregar personalizado</button>
-          </details>
-
-          <h3 class="top-gap">Comidas registradas hoy</h3>
-          <div id="food-log" class="food-log"></div>
-
-          <h3 class="top-gap">Últimos 7 días</h3>
+        <article class="panel">
+          <h3>Últimos 7 días</h3>
           <div id="macro-history" class="macro-history"></div>
+        </article>
 
-          <h3 class="top-gap">Mi perfil y cálculo</h3>
-          <div class="macro-inputs">
+        <details class="panel profile-panel">
+          <summary><h3>Mi perfil y cálculo</h3></summary>
+          <div class="macro-inputs top-gap">
             <div><label class="label" for="pf-height">Altura (cm)</label><input id="pf-height" type="number" inputmode="numeric" /></div>
             <div><label class="label" for="pf-age">Edad</label><input id="pf-age" type="number" inputmode="numeric" /></div>
             <div><label class="label" for="pf-weight">Peso (kg)</label><input id="pf-weight" type="number" inputmode="decimal" step="0.1" /></div>

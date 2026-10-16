@@ -27,17 +27,32 @@ const MEASURES_BASE = [
   { date: "2026-08-29", cuello: 37, pecho: 121, cintura: 107, cadera: 126, abdomen: 126,
     nota: "Abdomen medido por el ombligo: el punto anatómico no es igual al de julio, así que los −7 cm no son comparación exacta." }
 ];
-const DAY_ADJ = { strength: 100, walk: 50, mobility: -100, rest: -150, trek: 0 };
+/* Calorías extra el día que entrena.
+   El nivel de actividad del perfil es SOLO la vida diaria sin ejercicio,
+   así que el entrenamiento se suma aparte: así un día sin entrenar come
+   menos, sin que nada se cuente dos veces. */
+const TRAINING_TYPES = [
+  { id: "none", label: "No entrené", short: "Sin entrenar", kcal: 0, icon: "🛋️" },
+  { id: "light", label: "Movimiento suave", short: "Suave", kcal: 120, icon: "🚶‍♀️", hint: "Caminata corta, movilidad, estiramientos." },
+  { id: "cardio", label: "Caminata o cardio", short: "Cardio", kcal: 220, icon: "🏃‍♀️", hint: "Caminata de 40-60 min o cardio sostenido." },
+  { id: "strength", label: "Gimnasio o fuerza", short: "Fuerza", kcal: 280, icon: "🏋️‍♀️", hint: "Sesión de pesas completa." },
+  { id: "long", label: "Día muy activo", short: "Muy activo", kcal: 450, icon: "⛰️", hint: "Etapa del Camino, caminata de varias horas, turismo a pie todo el día." }
+];
+const trainingType = id => TRAINING_TYPES.find(t => t.id === id) || TRAINING_TYPES[0];
+
+// Qué entrenamiento sugiere el plan para cada tipo de día del módulo activo.
+const DAY_TYPE_TRAINING = { strength: "strength", walk: "cardio", trek: "long", mobility: "light", rest: "none" };
 
 function defaultNutrition() {
   return {
     profile: {
       weight: 102, height: 165, age: 34, sex: "f",
-      activity: 1.375, goal: "lose", rate: 0.5,
+      activity: 1.3, goal: "lose", rate: 0.5,
       proteinPerKgTarget: 2.0, carbCycling: true, kcalAdjust: 0, configured: true
     },
     days: {},
     planLog: {},
+    training: {},      // { "2026-10-16": "strength" } — lo que realmente hizo
     customFoods: [],
     weights: [],
     measures: []
@@ -67,6 +82,17 @@ function weightStats() {
   };
 }
 
+/* El nivel de actividad cambió de significado: antes incluía el ejercicio,
+   ahora es solo la vida diaria y el entrenamiento se suma por día. */
+function migrateProfile() {
+  const pr = n().profile;
+  if (pr.activity > 1.45) pr.activity = 1.3;        // venía de "moderado 3-5 días"
+  else if (pr.activity > 1.35) pr.activity = 1.3;   // venía de "ligero 1-3 días"
+  if (!ACTIVITY_LEVELS.some(a => a.value === pr.activity)) pr.activity = 1.3;
+  n().training ||= {};
+  saveState();
+}
+
 function migrateMeasures() {
   const nu = n();
   nu.measures = (nu.measures || []).map(m => {
@@ -91,46 +117,122 @@ function currentWeight() {
   return s.avg7 || n().profile.weight;
 }
 
-function nutritionTargets(dayType = "rest") {
+/* ---------------- Entrenamiento del día ---------------- */
+
+// Lo que el plan propone para esa fecha (sugerencia, no lo definitivo).
+function suggestedTraining(dateKey = todayDateKey()) {
+  try {
+    const d = dayForDate(parseDateKey(dateKey));
+    return DAY_TYPE_TRAINING[d.type] || "none";
+  } catch { return "none"; }
+}
+
+// Lo que realmente hizo: lo que ella eligió, o la sugerencia del plan si
+// ya registró actividad ese día, o "no entrené" si el día está en blanco.
+function trainingForDate(dateKey = todayDateKey()) {
+  const saved = (n().training || {})[dateKey];
+  if (saved) return saved;
+  const huboActividad = (state.logs || []).some(l => localDateKey(new Date(l.date)) === dateKey);
+  return huboActividad ? suggestedTraining(dateKey) : "none";
+}
+
+function setTrainingForDate(id, dateKey = todayDateKey()) {
+  n().training ||= {};
+  n().training[dateKey] = id;
+  const keys = Object.keys(n().training).sort();
+  while (keys.length > 180) delete n().training[keys.shift()];
+  saveState();
+  renderNutrition();
+  renderHome();
+}
+
+function nutritionTargets(trainingId = "none") {
   const pr = n().profile;
   const w = currentWeight();
   const bmr = 10 * w + 6.25 * pr.height - 5 * pr.age + (pr.sex === "f" ? -161 : 5);
-  const tdee = bmr * pr.activity;
+  // Gasto de la vida diaria, SIN contar el entrenamiento.
+  const baseTdee = bmr * pr.activity;
+  const extra = pr.carbCycling ? trainingType(trainingId).kcal : Math.round(trainingType("cardio").kcal * 0.7);
+  const tdee = baseTdee + extra;
   const deficit = pr.goal === "lose" ? pr.rate * 1100 : 0;
-  let base = tdee - deficit + (pr.kcalAdjust || 0);
-  const floored = base < KCAL_FLOOR;
-  if (floored) base = KCAL_FLOOR;
 
-  let kcal;
-  if (dayType === "trek") kcal = round10(tdee + 350);          // etapas largas: se come a mantenimiento o más
-  else kcal = round10(base + (pr.carbCycling ? (DAY_ADJ[dayType] || 0) : 0));
-  if (kcal < KCAL_FLOOR) kcal = KCAL_FLOOR;
+  let kcal = tdee - deficit + (pr.kcalAdjust || 0);
+  const floored = kcal < KCAL_FLOOR;
+  if (floored) kcal = KCAL_FLOOR;
+  kcal = round10(kcal);
+
+  // Calorías de un día sin entrenar: sirve de referencia en pantalla.
+  const restKcal = round10(Math.max(KCAL_FLOOR, baseTdee - deficit + (pr.kcalAdjust || 0)));
 
   const target = state.goals?.targetWeight || 80;
   const protein = round5(pr.proteinPerKgTarget * Math.min(target, w));
-  const fat = round5((base * 0.30) / 9);
+  const fat = round5((kcal * 0.30) / 9);
   const carbs = Math.max(0, round5((kcal - protein * 4 - fat * 9) / 4));
-  return { bmr: Math.round(bmr), tdee: round10(tdee), base: round10(base), kcal, protein, fat, carbs, weight: w, dayType, floored, deficit: Math.round(deficit) };
+  return {
+    bmr: Math.round(bmr), baseTdee: round10(baseTdee), tdee: round10(tdee),
+    extra, restKcal, kcal, protein, fat, carbs, weight: w,
+    trainingId, floored, deficit: Math.round(deficit)
+  };
 }
+
+const targetsForDate = (dateKey = todayDateKey()) => nutritionTargets(trainingForDate(dateKey));
 
 function dayEntries(dateKey = todayDateKey()) { return n().days[dateKey] || []; }
 function dayTotals(dateKey = todayDateKey()) {
   return dayEntries(dateKey).reduce((t, e) => ({ p: t.p + e.p, c: t.c + e.c, f: t.f + e.f, kcal: t.kcal + e.kcal }), { p: 0, c: 0, f: 0, kcal: 0 });
 }
-function allFoods() { return [...FOOD_DB, ...(n().customFoods || []).map(f => ({ ...f, group: "Mis alimentos" }))]; }
+function allFoods() { return [...FOOD_DB, ...(n().customFoods || []).map(normalizeFood)]; }
+
+// Da forma nueva (gBase + measures) a los alimentos guardados con el formato viejo.
+function normalizeFood(f) {
+  if (f.gBase && f.measures) return { ...f, group: "Mis alimentos" };
+  return { ...f, group: "Mis alimentos", gBase: 1, measures: [{ label: f.unit || "porción", g: 1 }], defaultQty: 1 };
+}
+
+function selectedFood() { return allFoods().find(f => f.id === $("food-select").value); }
+function selectedMeasure(food) {
+  const idx = Number($("food-measure").value || 0);
+  return (food?.measures || [{ label: "porción", g: 1 }])[idx] || food.measures[0];
+}
+const esPeso = m => m.label === "g" || m.label === "ml";
+
+// Al cambiar de alimento se cargan sus medidas y la cantidad sugerida.
+function syncFoodMeasures(resetQty = true) {
+  const food = selectedFood();
+  const sel = $("food-measure");
+  if (!food) { sel.innerHTML = ""; return; }
+  sel.innerHTML = (food.measures || []).map((m, i) => `<option value="${i}">${escapeHtml(m.label)}</option>`).join("");
+  sel.value = "0";
+  if (resetQty) $("food-qty").value = food.defaultQty ?? 1;
+  updateFoodPreview();
+}
+
 function pruneNutritionDays() { const keys = Object.keys(n().days).sort(); while (keys.length > 90) delete n().days[keys.shift()]; }
 
-function addFoodEntry({ name, unit, qty, p, c, f, meal }) {
+function addFoodEntry({ name, qtyText, grams, p, c, f, meal }) {
   const entry = {
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-    name, unit, qty, meal,
-    p: Math.round(p * qty * 10) / 10, c: Math.round(c * qty * 10) / 10, f: Math.round(f * qty * 10) / 10
+    name, qtyText, grams: grams || null, meal,
+    p: Math.round(p * 10) / 10, c: Math.round(c * 10) / 10, f: Math.round(f * 10) / 10
   };
   entry.kcal = Math.round(entry.p * 4 + entry.c * 4 + entry.f * 9);
   const key = todayDateKey();
   n().days[key] = [...(n().days[key] || []), entry];
   pruneNutritionDays(); saveState(); renderNutrition(); renderHome();
+
+  const aviso = $("food-added");
+  if (aviso) {
+    const t = targetsForDate(), restan = Math.round(t.kcal - dayTotals().kcal);
+    aviso.textContent = `Agregado: ${name} · ${entry.kcal} kcal. ${restan >= 0 ? `Te quedan ${restan} kcal.` : `Te pasaste por ${Math.abs(restan)} kcal.`}`;
+    aviso.classList.remove("hidden");
+    clearTimeout(addFoodTimer);
+    addFoodTimer = setTimeout(() => aviso.classList.add("hidden"), 4000);
+  }
 }
+let addFoodTimer = null;
+
+// Las comidas guardadas con el formato viejo se siguen mostrando bien.
+function entryQtyText(e) { return e.qtyText || `${fmt1(e.qty || 1)} × ${e.unit || "porción"}`; }
 function removeFoodEntry(id) {
   const key = todayDateKey();
   n().days[key] = dayEntries(key).filter(e => e.id !== id);
@@ -237,61 +339,119 @@ function macroBar(label, value, target, unit, cls) {
 function renderNutritionMini() {
   const box = $("nutrition-mini");
   if (!box) return;
+  const t = targetsForDate();
+  const tot = dayTotals();
+  const restan = Math.round(t.kcal - tot.kcal);
+  const pct = Math.min(100, Math.round((tot.kcal / t.kcal) * 100));
+  const tr = trainingType(trainingForDate());
   const pr = planProgress();
-  const comida = PLAN_COMIDAS[todayKey()];
-  const esFlex = comida.almuerzo === "FLEX";
   box.innerHTML = `
     <div class="section-title-row compact-row">
-      <div><p class="eyebrow">Plan de hoy · Lic. Nacul</p><h3>${pr.done}/${pr.total} comidas</h3></div>
-      <button class="ghost-btn small-btn" data-nav="nutrition-view">Ver plan</button>
+      <div><p class="eyebrow">Comida de hoy · ${escapeHtml(tr.short)}</p>
+        <h3>${restan >= 0 ? `Te quedan ${restan} kcal` : `${Math.abs(restan)} kcal de más`}</h3></div>
+      <button class="ghost-btn small-btn" data-nav="nutrition-view">Registrar</button>
     </div>
-    <p class="muted">${esFlex ? "Almuerzo FLEX: comida libre." : "Almuerzo: " + escapeHtml(comida.almuerzo)}</p>`;
+    <div class="macro-track mini"><i class="${restan < 0 ? "over" : ""}" style="width:${pct}%"></i></div>
+    <p class="muted mini-line">${Math.round(tot.kcal)} de ${t.kcal} kcal · proteína ${Math.round(tot.p)}/${t.protein} g · plan ${pr.done}/${pr.total} comidas</p>`;
 }
 
-function renderNutrition() {
-  if (!$("nutrition-view")) return;
-  renderPlanDiario();
-  renderPlanFijo();
-  const d = todayDay();
-  const t = nutritionTargets(d.type);
-  const tot = dayTotals();
-  const pr = n().profile;
+/* ---------------- Calorías del día ---------------- */
 
-  $("nut-day-type").textContent = `${DAY_LABELS[todayKey()]} · ${DAY_TYPE_LABELS[d.type]}`;
-  $("nut-kcal").textContent = `${Math.round(tot.kcal)} / ${t.kcal}`;
-  let note = `Gasto estimado ${t.tdee} kcal · objetivo base ${t.base} kcal.`;
-  if (t.dayType === "trek") note += " Hoy caminás muchas horas: comés a mantenimiento, sin déficit.";
-  else if (pr.carbCycling && DAY_ADJ[t.dayType] > 0) note += ` Día activo: +${DAY_ADJ[t.dayType]} kcal.`;
-  else if (pr.carbCycling && DAY_ADJ[t.dayType] < 0) note += ` Día tranquilo: ${DAY_ADJ[t.dayType]} kcal.`;
-  $("nut-day-note").textContent = note;
+function kcalRingSvg(consumido, objetivo) {
+  const R = 54, C = 2 * Math.PI * R;
+  const pct = Math.max(0, Math.min(1, objetivo ? consumido / objetivo : 0));
+  const over = consumido > objetivo;
+  const restan = Math.round(objetivo - consumido);
+  return `<svg viewBox="0 0 140 140" class="kcal-ring" role="img" aria-label="${Math.round(consumido)} de ${objetivo} kcal">
+    <circle cx="70" cy="70" r="${R}" class="ring-bg"/>
+    <circle cx="70" cy="70" r="${R}" class="ring-fill ${over ? "over" : ""}"
+      stroke-dasharray="${(C * pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 70 70)"/>
+    <text x="70" y="64" class="ring-num ${over ? "over" : ""}">${Math.abs(restan)}</text>
+    <text x="70" y="84" class="ring-cap">${over ? "kcal de más" : "kcal libres"}</text>
+  </svg>`;
+}
+
+function renderCalorias() {
+  if (!$("kcal-card")) return;
+  const dateKey = todayDateKey();
+  const t = targetsForDate(dateKey);
+  const tot = dayTotals();
+  const actual = trainingForDate(dateKey);
+  const sugerido = suggestedTraining(dateKey);
+
+  $("kcal-ring-box").innerHTML = kcalRingSvg(tot.kcal, t.kcal);
+  $("kcal-numbers").innerHTML = `
+    <div class="kcal-num"><strong>${t.kcal}</strong><span>objetivo</span></div>
+    <div class="kcal-num"><strong>${Math.round(tot.kcal)}</strong><span>comiste</span></div>`;
+
+  $("training-chips").innerHTML = TRAINING_TYPES.map(tt => `
+    <button class="train-chip ${tt.id === actual ? "active" : ""}" data-training="${tt.id}">
+      <span class="tc-icon">${tt.icon}</span>
+      <span class="tc-label">${escapeHtml(tt.short)}</span>
+      <span class="tc-kcal">${tt.kcal ? "+" + tt.kcal : "base"}</span>
+    </button>`).join("");
+
+  // Días entrenados en los últimos 7, contra la meta semanal.
+  let entrenados = 0;
+  for (let i = 0; i < 7; i++) {
+    const dt = new Date(); dt.setDate(dt.getDate() - i);
+    if (trainingForDate(localDateKey(dt)) !== "none") entrenados++;
+  }
+  const metaSemanal = state.goals?.weeklyTrainings || 5;
+  $("week-training").innerHTML = `Últimos 7 días: <strong>${entrenados} de ${metaSemanal}</strong> entrenamientos${entrenados >= metaSemanal ? " ✓" : ""}`;
+
+  const tr = trainingType(actual);
+  let nota;
+  if (actual === "none") {
+    nota = `Día sin entrenar: comés <strong>${t.kcal} kcal</strong>, el objetivo más bajo de la semana. ${sugerido !== "none" ? `El plan proponía ${escapeHtml(trainingType(sugerido).label.toLowerCase())}; si al final entrenás, cambialo acá y suben las calorías.` : ""}`;
+  } else {
+    nota = `${escapeHtml(tr.label)}: <strong>+${tr.kcal} kcal</strong> sobre las ${t.restKcal} de un día sin entrenar. ${tr.hint ? escapeHtml(tr.hint) : ""}`;
+  }
+  $("training-note").innerHTML = nota;
   $("nut-floor-warning").classList.toggle("hidden", !t.floored);
+
   $("nut-bars").innerHTML =
     macroBar("Proteína", tot.p, t.protein, "g", "m-p") +
     macroBar("Carbohidratos", tot.c, t.carbs, "g", "m-c") +
     macroBar("Grasas", tot.f, t.fat, "g", "m-f");
+  $("protein-hint").textContent = tot.p >= t.protein * 0.9
+    ? "Proteína cumplida ✓ Es lo que protege tu músculo mientras bajás."
+    : `Te faltan ${Math.round(t.protein - tot.p)} g de proteína. Es el macro que más cuida el músculo: priorizalo antes que los carbohidratos.`;
+}
+
+function renderNutrition() {
+  if (!$("nutrition-view")) return;
+  renderCalorias();
+  renderPlanDiario();
+  renderPlanFijo();
 
   const sel = $("food-select");
   const current = sel.value;
   const groups = {};
   allFoods().forEach(f => { (groups[f.group] ||= []).push(f); });
   sel.innerHTML = Object.entries(groups).map(([g, items]) =>
-    `<optgroup label="${escapeHtml(g)}">${items.map(f => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)} — ${escapeHtml(f.unit)}</option>`).join("")}</optgroup>`).join("");
+    `<optgroup label="${escapeHtml(g)}">${items.map(f => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)}</option>`).join("")}</optgroup>`).join("");
   if (current && allFoods().some(f => f.id === current)) sel.value = current;
+  syncFoodMeasures(!current);
   $("meal-select").innerHTML = MEALS.map(m => `<option>${m}</option>`).join("");
   if (!$("meal-select").dataset.touched) $("meal-select").value = guessMeal();
-  updateFoodPreview();
 
   const entries = dayEntries();
   $("food-log").innerHTML = entries.length
-    ? MEALS.filter(m => entries.some(e => e.meal === m)).map(m => `
-        <div class="meal-group"><p class="eyebrow">${m}</p>
-        ${entries.filter(e => e.meal === m).map(e => `
-          <div class="food-item">
-            <div><strong>${escapeHtml(e.name)}</strong><small>${fmt1(e.qty)} × ${escapeHtml(e.unit)} · P ${fmt1(e.p)} · C ${fmt1(e.c)} · G ${fmt1(e.f)}</small></div>
-            <div class="food-kcal">${e.kcal}<small>kcal</small></div>
-            <button class="icon-btn" data-remove-food="${e.id}" aria-label="Eliminar">✕</button>
-          </div>`).join("")}</div>`).join("")
-    : '<p class="muted">Todavía no registraste comidas hoy.</p>';
+    ? MEALS.filter(m => entries.some(e => e.meal === m)).map(m => {
+        const items = entries.filter(e => e.meal === m);
+        const sub = items.reduce((a, e) => a + e.kcal, 0);
+        return `<div class="meal-group">
+          <div class="meal-head"><p class="eyebrow">${m}</p><span>${sub} kcal</span></div>
+          ${items.map(e => `
+            <div class="food-item">
+              <div><strong>${escapeHtml(e.name)}</strong><small>${escapeHtml(entryQtyText(e))} · P ${fmt1(e.p)} · C ${fmt1(e.c)} · G ${fmt1(e.f)}</small></div>
+              <div class="food-kcal">${e.kcal}<small>kcal</small></div>
+              <button class="icon-btn" data-remove-food="${e.id}" aria-label="Eliminar">✕</button>
+            </div>`).join("")}
+        </div>`;
+      }).join("")
+    : '<p class="muted">Todavía no registraste comidas hoy. Agregá la primera arriba.</p>';
 
   renderMacroHistory();
   renderProfileForm();
@@ -306,11 +466,14 @@ function guessMeal() {
 }
 
 function updateFoodPreview() {
-  const food = allFoods().find(f => f.id === $("food-select").value);
+  const food = selectedFood();
   const qty = parseFloat($("food-qty").value) || 0;
-  $("food-preview").textContent = food
-    ? `${kcalOf(food, qty)} kcal · P ${fmt1(food.p * qty)} g · C ${fmt1(food.c * qty)} g · G ${fmt1(food.f * qty)} g`
-    : "";
+  if (!food) { $("food-preview").textContent = ""; return; }
+  const m = selectedMeasure(food);
+  const macros = foodMacros(food, qty, m);
+  const grams = qty * (m.g || 1);
+  $("food-preview").innerHTML = `<strong>${macrosKcal(macros)} kcal</strong> · P ${fmt1(macros.p)} g · C ${fmt1(macros.c)} g · G ${fmt1(macros.f)} g
+    <span class="preview-sub">${esPeso(m) ? `valores por ${food.gBase} ${m.label}` : `≈ ${fmt1(grams)} g`}</span>`;
 }
 
 function renderMacroHistory() {
@@ -320,13 +483,13 @@ function renderMacroHistory() {
     const key = localDateKey(dt);
     if (!dayEntries(key).length) continue;
     const tot = dayTotals(key);
-    const t = nutritionTargets(dayForDate(dt).type);
+    const t = targetsForDate(key);
     const pOk = tot.p >= t.protein * 0.9;
     const kOk = tot.kcal <= t.kcal * 1.1;
-    rows.push(`<div class="hist-row"><span>${formatShortDate(key)}</span><span class="${kOk ? "ok" : "warn"}">${Math.round(tot.kcal)} kcal</span><span class="${pOk ? "ok" : "warn"}">P ${Math.round(tot.p)} g</span></div>`);
+    rows.push(`<div class="hist-row"><span>${formatShortDate(key)} ${trainingType(trainingForDate(key)).icon}</span><span class="${kOk ? "ok" : "warn"}">${Math.round(tot.kcal)} / ${t.kcal}</span><span class="${pOk ? "ok" : "warn"}">P ${Math.round(tot.p)} g</span></div>`);
   }
   $("macro-history").innerHTML = rows.length
-    ? rows.reverse().join("") + '<p class="dataset-note">Verde: calorías dentro del objetivo y proteína cumplida.</p>'
+    ? rows.reverse().join("") + '<p class="dataset-note">Verde: calorías dentro del objetivo y proteína cumplida. El ícono muestra si ese día entrenaste.</p>'
     : '<p class="muted">Acá vas a ver tus últimos 7 días registrados.</p>';
 }
 
@@ -344,14 +507,17 @@ function renderProfileForm() {
   $("pf-protein").value = pr.proteinPerKgTarget;
   $("pf-protein-label").textContent = `${fmt1(pr.proteinPerKgTarget)} g por kg de peso objetivo`;
   $("pf-carbcycle").checked = pr.carbCycling;
-  const strong = nutritionTargets("strength"), restD = nutritionTargets("rest");
   $("pf-summary").innerHTML = `
     <p>Peso usado en el cálculo: <strong>${fmt1(t.weight)} kg</strong> ${weightStats().avg7 ? "(promedio de 7 días)" : "(del perfil)"}</p>
-    <p>Metabolismo basal: <strong>${t.bmr} kcal</strong> · Gasto diario estimado: <strong>${t.tdee} kcal</strong></p>
-    ${t.deficit ? `<p>Déficit aplicado: <strong>−${t.deficit} kcal</strong> (≈ ${fmt1(n().profile.rate)} kg por semana)</p>` : ""}
-    <p>Días de fuerza: <strong>${strong.kcal} kcal</strong> · P ${strong.protein} g · C ${strong.carbs} g · G ${strong.fat} g</p>
-    <p>Días tranquilos: <strong>${restD.kcal} kcal</strong> · P ${restD.protein} g · C ${restD.carbs} g · G ${restD.fat} g</p>
-    <p class="dataset-note">Son estimaciones: el registro de peso te dice si hay que ajustar. Antes de una cirugía conviene que un médico o nutricionista revise el plan.</p>`;
+    <p>Metabolismo basal: <strong>${t.bmr} kcal</strong> · Vida diaria sin entrenar: <strong>${t.baseTdee} kcal</strong></p>
+    ${t.deficit ? `<p>Déficit aplicado: <strong>−${t.deficit} kcal</strong> (≈ ${fmt1(pr.rate)} kg por semana)</p>` : ""}
+    <div class="kcal-table">
+      ${TRAINING_TYPES.map(tt => {
+        const tg = nutritionTargets(tt.id);
+        return `<div class="kcal-row"><span>${tt.icon} ${escapeHtml(tt.label)}</span><strong>${tg.kcal} kcal</strong><span>P ${tg.protein} · C ${tg.carbs} · G ${tg.fat}</span></div>`;
+      }).join("")}
+    </div>
+    <p class="dataset-note">El nivel de actividad de acá arriba es solo tu vida diaria: el ejercicio se suma por día según lo que marques en "¿Entrenaste hoy?". Son estimaciones; el registro de peso te dice si hay que ajustar. Antes de una cirugía conviene que un médico o nutricionista revise el plan.</p>`;
 }
 
 function saveProfile() {
@@ -499,29 +665,62 @@ function weightChartSvg(list, target) {
 }
 
 function setupNutritionEvents() {
-  $("food-select").addEventListener("change", updateFoodPreview);
+  $("food-select").addEventListener("change", () => syncFoodMeasures(true));
+  $("food-measure").addEventListener("change", () => {
+    const food = selectedFood();
+    const m = selectedMeasure(food);
+    const qty = parseFloat($("food-qty").value) || 1;
+    // Al pasar a gramos sugerimos el equivalente de lo que había cargado.
+    if (esPeso(m)) $("food-qty").value = Math.round(qty * ((food.measures[0]?.g) || 1)) || food.gBase;
+    else $("food-qty").value = 1;
+    updateFoodPreview();
+  });
   $("food-qty").addEventListener("input", updateFoodPreview);
   $("meal-select").addEventListener("change", () => { $("meal-select").dataset.touched = "1"; });
   document.querySelectorAll("[data-qty-step]").forEach(b => b.addEventListener("click", () => {
-    $("food-qty").value = Math.max(0.25, (parseFloat($("food-qty").value) || 0) + parseFloat(b.dataset.qtyStep));
+    const m = selectedMeasure(selectedFood());
+    const porGramo = esPeso(m);
+    const paso = (porGramo ? 10 : 0.5) * Math.sign(parseFloat(b.dataset.qtyStep));
+    const min = porGramo ? 5 : 0.25;
+    $("food-qty").value = Math.max(min, Math.round(((parseFloat($("food-qty").value) || 0) + paso) * 100) / 100);
     updateFoodPreview();
   }));
   $("add-food").addEventListener("click", () => {
-    const food = allFoods().find(f => f.id === $("food-select").value);
+    const food = selectedFood();
     const qty = parseFloat($("food-qty").value);
     if (!food || !(qty > 0)) return;
-    $("food-qty").value = 1;
-    addFoodEntry({ name: food.name, unit: food.unit, qty, p: food.p, c: food.c, f: food.f, meal: $("meal-select").value });
+    const m = selectedMeasure(food);
+    const macros = foodMacros(food, qty, m);
+    addFoodEntry({
+      name: food.name,
+      qtyText: esPeso(m) ? `${fmt1(qty)} ${m.label}` : `${fmt1(qty)} × ${m.label}`,
+      grams: qty * (m.g || 1),
+      p: macros.p, c: macros.c, f: macros.f,
+      meal: $("meal-select").value
+    });
   });
   $("add-custom-food").addEventListener("click", () => {
     const name = $("cf-name").value.trim();
     const p = parseFloat($("cf-p").value) || 0, c = parseFloat($("cf-c").value) || 0, f = parseFloat($("cf-f").value) || 0;
-    if (!name || p + c + f <= 0) { $("cf-error").classList.remove("hidden"); return; }
+    const baseQty = parseFloat($("cf-base").value) || 0;
+    const baseUnit = $("cf-unit-type").value;
+    if (!name || p + c + f <= 0 || !(baseQty > 0)) { $("cf-error").classList.remove("hidden"); return; }
     $("cf-error").classList.add("hidden");
-    const unit = $("cf-unit").value.trim() || "1 porción";
-    if ($("cf-save").checked) n().customFoods = [...(n().customFoods || []), { id: "custom-" + Date.now(), name, unit, p, c, f }];
-    addFoodEntry({ name, unit, qty: 1, p, c, f, meal: $("meal-select").value });
-    ["cf-name", "cf-unit", "cf-p", "cf-c", "cf-f"].forEach(id => { $(id).value = ""; });
+    const porPeso = baseUnit === "g" || baseUnit === "ml";
+    const food = {
+      id: "custom-" + Date.now(), name, p, c, f, gBase: baseQty,
+      measures: porPeso
+        ? [{ label: baseUnit, g: 1 }, { label: `porción (${fmt1(baseQty)} ${baseUnit})`, g: baseQty }]
+        : [{ label: "unidad", g: 1 }],
+      defaultQty: baseQty
+    };
+    if ($("cf-save").checked) n().customFoods = [...(n().customFoods || []), food];
+    const macros = foodMacros(food, baseQty, food.measures[0]);
+    addFoodEntry({
+      name, qtyText: porPeso ? `${fmt1(baseQty)} ${baseUnit}` : `${fmt1(baseQty)} × unidad`,
+      grams: porPeso ? baseQty : null, p: macros.p, c: macros.c, f: macros.f, meal: $("meal-select").value
+    });
+    ["cf-name", "cf-p", "cf-c", "cf-f"].forEach(id => { $(id).value = ""; });
   });
   $("pf-goal").addEventListener("change", e => $("pf-rate-row").classList.toggle("hidden", e.target.value !== "lose"));
   $("pf-protein").addEventListener("input", e => { $("pf-protein-label").textContent = `${fmt1(parseFloat(e.target.value))} g por kg de peso objetivo`; });
@@ -529,6 +728,7 @@ function setupNutritionEvents() {
   $("nutrition-view").addEventListener("click", e => {
     const rf = e.target.closest("[data-remove-food]"); if (rf) removeFoodEntry(rf.dataset.removeFood);
     const pc = e.target.closest("[data-plan-check]"); if (pc) togglePlanCheck(pc.dataset.planCheck);
+    const tr = e.target.closest("[data-training]"); if (tr) setTrainingForDate(tr.dataset.training);
   });
 
   // Progreso
