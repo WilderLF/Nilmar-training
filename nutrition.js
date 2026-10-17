@@ -245,6 +245,7 @@ let addFoodTimer = null;
 function entryQtyText(e) { return e.qtyText || `${fmt1(e.qty || 1)} × ${e.unit || "porción"}`; }
 function removeFoodEntry(id) {
   const key = todayDateKey();
+  Sync.marcarBorrado("meal:" + id);
   n().days[key] = dayEntries(key).filter(e => e.id !== id);
   saveState(); renderNutrition(); renderHome();
 }
@@ -779,8 +780,16 @@ function setupNutritionEvents() {
   $("reset-kcal-adjust").addEventListener("click", () => { n().profile.kcalAdjust = 0; saveState(); renderProgress(); renderNutrition(); renderHome(); });
   $("progress-view").addEventListener("click", e => {
     const rw = e.target.closest("[data-remove-weight]");
-    if (rw) { n().weights = n().weights.filter(w => w.date !== rw.dataset.removeWeight); saveState(); renderProgress(); }
+    if (rw) {
+      Sync.marcarBorrado("weight:" + rw.dataset.removeWeight);
+      n().weights = n().weights.filter(w => w.date !== rw.dataset.removeWeight);
+      saveState(); renderProgress();
+    }
     const rm = e.target.closest("[data-remove-measure]");
-    if (rm) { n().measures = n().measures.filter(m => m.date !== rm.dataset.removeMeasure); saveState(); renderProgress(); }
+    if (rm) {
+      Sync.marcarBorrado("measure:" + rm.dataset.removeMeasure);
+      n().measures = n().measures.filter(m => m.date !== rm.dataset.removeMeasure);
+      saveState(); renderProgress();
+    }
   });
 }

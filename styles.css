@@ -417,3 +417,151 @@ input[type=range] { padding: 0; accent-color: var(--accent); background: transpa
 #food-added { font-size: 13px; line-height: 1.45; }
 .kcal-card .section-title-row.compact-row { flex-wrap: wrap; row-gap: 2px; }
 .kcal-card .label.no-gap { white-space: nowrap; }
+
+/* ---------- sincronización ---------- */
+.top-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.sync-chip {
+  font-size: 10.5px; font-weight: 700; padding: 6px 11px; border-radius: 99px;
+  border: 1px solid var(--line); white-space: nowrap; cursor: pointer; background: #fff; color: var(--muted);
+}
+.sync-chip.ok { color: #3E7A00; border-color: rgba(78, 155, 46, .45); background: #F4FBF0; }
+.sync-chip.offline { color: #B26A00; border-color: #FFD8A8; background: #FFF3E0; }
+.sync-chip.syncing { color: var(--teal); border-color: rgba(45, 147, 173, .4); background: #F0F9FB; }
+.sync-chip.local { color: var(--muted); }
+
+/* ==========================================================
+   Ciclo menstrual
+   ========================================================== */
+
+/* ---------- tarjeta de hoy ---------- */
+.cycle-hero { border-top: 4px solid var(--fase); }
+.cycle-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.cycle-hero-top h2 { margin-top: 2px; }
+.cycle-ring {
+  width: 74px; height: 74px; flex: none; border-radius: 50%;
+  display: grid; place-content: center; text-align: center; position: relative;
+  background: conic-gradient(var(--fase) var(--pct), rgba(33,1,36,.08) 0);
+}
+.cycle-ring::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: var(--card); }
+.cycle-ring span, .cycle-ring small { position: relative; z-index: 1; display: block; line-height: 1.1; }
+.cycle-ring span { font-size: 24px; font-weight: 800; color: var(--fase); }
+.cycle-ring small { font-size: 10.5px; color: var(--muted); }
+.cycle-next {
+  margin-top: 12px; padding: 11px 13px; border-radius: 12px;
+  background: color-mix(in srgb, var(--fase) 11%, #fff); font-size: 14px;
+  border: 1px solid color-mix(in srgb, var(--fase) 24%, #fff);
+}
+.cycle-tips { display: grid; gap: 9px; margin-top: 13px; }
+.cycle-tip { display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: start; }
+.cycle-tip span { font-size: 17px; line-height: 1.3; }
+.cycle-tip strong { font-size: 13px; display: block; }
+.cycle-tip p { font-size: 13px; color: var(--muted); line-height: 1.45; }
+
+/* chip del ciclo en la pantalla de Hoy */
+.cycle-chip {
+  width: 100%; display: flex; align-items: center; gap: 11px; text-align: left;
+  background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--c);
+  border-radius: 16px; padding: 12px 14px; margin-bottom: 14px; box-shadow: var(--shadow);
+}
+.cycle-chip span { font-size: 20px; }
+.cycle-chip strong { display: block; font-size: 14.5px; color: var(--ink); }
+.cycle-chip small { color: var(--muted); font-size: 12.5px; }
+
+/* ---------- calendario ---------- */
+.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.cal-head h3 { font-size: 16px; }
+.cal-dow, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.cal-dow span { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); padding-bottom: 4px; }
+.cal-cell {
+  aspect-ratio: 1; border: 1px solid transparent; background: #F6F8FB; border-radius: 11px;
+  font-size: 13.5px; font-weight: 600; color: var(--ink); position: relative; padding: 0;
+  display: grid; place-content: center;
+}
+.cal-cell.empty { background: transparent; }
+.cal-cell.futuro { color: #A9A3B0; }
+.cal-cell.flujo { background: var(--c); color: #fff; border-color: var(--c); }
+.cal-cell.fertil { background: #D9EEF7; color: #1F6780; }
+.cal-cell.mancha { background: #F0E7F8; }
+.cal-cell.hoy { outline: 2px solid var(--ink); outline-offset: 1px; }
+.cal-cell.sel { border-color: var(--ink); border-width: 2px; }
+.cal-dot {
+  position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+  width: 4px; height: 4px; border-radius: 50%; background: #7B5EA7;
+}
+.cal-cell.flujo .cal-dot { background: #fff; }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+.cal-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.cal-legend i { width: 11px; height: 11px; border-radius: 4px; display: inline-block; }
+.cal-legend .leg-fertil { background: #D9EEF7; }
+.cal-legend .leg-sint { background: #7B5EA7; border-radius: 50%; width: 7px; height: 7px; }
+
+/* ---------- editor del día ---------- */
+.cycle-editor { border: 2px solid var(--ink); }
+.cy-ed-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.cy-ed-head h3 { font-size: 16px; }
+.cy-label {
+  font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); margin: 14px 0 8px;
+}
+.cy-chips { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 3px; }
+.cy-chips.wrap { flex-wrap: wrap; overflow: visible; }
+.cy-chip {
+  flex: none; background: #F6F8FB; border: 1px solid var(--line); color: var(--ink);
+  border-radius: 999px; padding: 9px 13px; font-size: 13px; font-weight: 600; min-height: 38px;
+}
+.cy-chip.sm { font-size: 12.5px; padding: 7px 11px; min-height: 34px; font-weight: 500; }
+.cy-chip.on { background: var(--c, var(--ink)); color: #fff; border-color: transparent; }
+.cy-switch-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px; font-size: 14px; font-weight: 600;
+}
+.cy-switch {
+  width: 48px; height: 28px; border-radius: 999px; background: #D7D2DC;
+  border: none; padding: 3px; display: flex; transition: background .15s;
+}
+.cy-switch i { width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.cy-switch.on { background: #9B7FD4; }
+.cy-switch.on i { transform: translateX(20px); }
+.cy-input {
+  width: 100%; min-height: 44px; border-radius: 12px; border: 1px solid var(--line);
+  background: #F6F8FB; padding: 0 13px; font: inherit; font-size: 14px; color: var(--ink);
+}
+.cy-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; background: #fff; }
+
+/* ---------- lo que significa ---------- */
+.cy-insights { display: grid; gap: 10px; margin-top: 10px; }
+.cy-insight {
+  display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start;
+  background: #F6F8FB; border-radius: 13px; padding: 13px; border-left: 3px solid var(--muted);
+}
+.cy-insight.ok { background: #EEF8EC; border-left-color: #4C9A3F; }
+.cy-insight.warn { background: #FFF4E8; border-left-color: #D98324; }
+.cy-insight.info { background: #EDF4F8; border-left-color: var(--teal); }
+.cy-insight-icon { font-size: 17px; line-height: 1.35; }
+.cy-insight strong { font-size: 13.5px; display: block; margin-bottom: 3px; }
+.cy-insight p { font-size: 13px; color: #4A4350; line-height: 1.5; }
+
+/* ---------- historial ---------- */
+.cy-hist {
+  display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+  background: #F6F8FB; border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-top: 7px;
+}
+.cy-hist.head {
+  background: transparent; color: var(--muted); font-size: 11.5px; text-transform: uppercase;
+  letter-spacing: .08em; font-weight: 700; padding-bottom: 0; margin-top: 14px;
+}
+.cy-hist strong { display: block; font-size: 14px; }
+.cy-hist small { color: var(--muted); font-size: 12px; }
+.cy-hist span { font-weight: 700; color: var(--teal); }
+.cy-sub { font-size: 14px; margin-top: 6px; }
+
+#cycle-view .panel + .panel, #cycle-view > div + div > .panel { margin-top: 14px; }
+
+/* cinco pestañas abajo en vez de cuatro */
+.bottom-nav { grid-template-columns: repeat(5, 1fr); }
+.bottom-nav button { font-size: 12.5px; }
+@media (max-width: 380px) { .bottom-nav button { font-size: 11.5px; } }
+.cy-stats3 { grid-template-columns: repeat(3, 1fr); }
+.cy-stats3 .stat-card { padding: 12px 10px; }
+.cy-stats3 .stat-card span { font-size: 22px; }
+.cy-stats3 .stat-card p { font-size: 11.5px; line-height: 1.3; }

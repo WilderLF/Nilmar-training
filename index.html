@@ -19,7 +19,10 @@
         <img src="assets/isologo.png" alt="" class="brand-logo" />
         <div class="wordmark"><span class="wm-light">nilmar</span><span class="wm-bold">montilla</span></div>
       </div>
-      <button id="install-btn" class="ghost-btn small-btn hidden">Instalar</button>
+      <div class="top-right">
+        <button id="install-btn" class="ghost-btn small-btn hidden">Instalar</button>
+        <span id="sync-chip" class="sync-chip local" data-nav="sync-view">Solo acá</span>
+      </div>
     </header>
 
     <main>
@@ -33,6 +36,8 @@
           <div class="hero-meta"><span id="today-duration">--</span><span id="today-intensity">--</span></div>
           <div id="today-sessions"></div>
         </article>
+
+        <div id="home-cycle"></div>
 
         <article id="medical-note" class="panel medical hidden">
           <h3>Antes que nada</h3>
@@ -431,12 +436,49 @@
           <p id="goals-saved" class="ok-note hidden">Guardado ✓</p>
         </details>
       </section>
+
+      <!-- ============ SINCRONIZACIÓN ============ -->
+      <section id="cycle-view" class="view">
+        <div class="section-title-row">
+          <div><p class="eyebrow">Tu cuerpo</p><h2>Ciclo</h2></div>
+        </div>
+        <div id="cycle-today"></div>
+        <div id="cycle-calendar"></div>
+        <div id="cycle-editor"></div>
+        <div id="cycle-insights"></div>
+        <div id="cycle-history"></div>
+      </section>
+
+      <section id="sync-view" class="view">
+        <div class="section-title-row">
+          <div><p class="eyebrow">Tus datos</p><h2>Sincronización</h2></div>
+          <button data-nav="home-view" class="ghost-btn small-btn">Volver</button>
+        </div>
+
+        <article id="sync-card" class="panel"></article>
+
+        <article class="panel">
+          <h3>Respaldo manual</h3>
+          <p class="muted sub">Un archivo con todo lo tuyo, para guardarlo o pasarlo a otro teléfono.</p>
+          <div class="button-grid">
+            <button id="sync-export" class="secondary-btn">Descargar</button>
+            <button id="sync-import-btn" class="ghost-btn">Restaurar</button>
+          </div>
+          <input id="sync-import-file" type="file" accept="application/json" class="hidden" />
+        </article>
+
+        <article class="panel">
+          <h3>Qué se guarda</h3>
+          <div id="sync-data-list" class="macro-history"></div>
+        </article>
+      </section>
     </main>
 
     <nav class="bottom-nav">
       <button data-nav="home-view" class="active">Hoy</button>
       <button data-nav="plan-view">Plan</button>
       <button data-nav="nutrition-view">Comida</button>
+      <button data-nav="cycle-view">Ciclo</button>
       <button data-nav="progress-view">Progreso</button>
     </nav>
   </div>
@@ -445,7 +487,10 @@
   <script src="data/exercise-dataset.js"></script>
   <script src="data/foods.js"></script>
   <script src="data/plan-alimentacion.js"></script>
+  <script src="data/cycle-data.js"></script>
+  <script src="sync.js"></script>
   <script src="nutrition.js"></script>
+  <script src="cycle.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

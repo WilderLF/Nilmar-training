@@ -32,7 +32,8 @@ function defaultState() {
     ],
     goals: { startWeight: 102, targetWeight: 80, surgeryDate: "2027-04-15" },
     logs: [], completed: {}, mediaOverrides: {}, readiness: "normal",
-    nutrition: defaultNutrition()
+    nutrition: defaultNutrition(),
+    cycle: defaultCycle()
   };
 }
 
@@ -45,10 +46,20 @@ function loadState() {
     merged.goals = { ...base.goals, ...(saved.goals || {}) };
     merged.nutrition = { ...base.nutrition, ...(saved.nutrition || {}) };
     merged.nutrition.profile = { ...base.nutrition.profile, ...(saved.nutrition?.profile || {}) };
+    merged.cycle = { ...base.cycle, ...(saved.cycle || {}) };
+    merged.cycle.days = { ...(saved.cycle?.days || {}) };
     return merged;
   } catch { return base; }
 }
-function saveState() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch { /* sin espacio */ } }
+function saveState() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch { /* sin espacio */ }
+  if (typeof Sync !== "undefined") Sync.programarSubida();
+}
+
+// Redibuja todo: lo usa la sincronización cuando bajan datos nuevos.
+function redibujarTodo() {
+  try { renderHome(); renderPlan(); renderNutrition(); renderProgress(); renderCycle(); } catch (e) { console.warn(e); }
+}
 
 /* ---------------- Módulo activo por fecha ---------------- */
 
@@ -87,6 +98,7 @@ function navigate(viewId) {
   if (viewId === "nutrition-view") renderNutrition();
   if (viewId === "progress-view") renderProgress();
   if (viewId === "plan-view") renderPlan();
+  if (viewId === "cycle-view") renderCycle();
   window.scrollTo({ top: 0 });
 }
 
@@ -116,6 +128,8 @@ function renderHome() {
   document.documentElement.style.setProperty("--on-accent", mod.onAccent || "#fff");
   $("date-label").textContent = new Intl.DateTimeFormat("es-AR", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
   $("today-module").innerHTML = `<span class="mod-chip" style="--mod:${mod.accent};--mod-text:${mod.onAccent || "#fff"}">${mod.emoji} ${escapeHtml(mod.label)}</span>${block ? `<span class="muted block-label">${escapeHtml(block.label)}</span>` : ""}`;
+  const chipCiclo = $("home-cycle");
+  if (chipCiclo) { try { chipCiclo.innerHTML = cycleChipHtml(); } catch { chipCiclo.innerHTML = ""; } }
   $("today-title").textContent = d.title;
   $("today-goal").textContent = d.goal;
   $("today-duration").textContent = d.duration;
@@ -451,7 +465,11 @@ function setupEvents() {
     const activity = e.target.closest("[data-activity]"); if (activity) openLog(activity.dataset.activity);
     const pick = e.target.closest("[data-pick-exercise]"); if (pick) pickDatasetExercise(pick.dataset.pickExercise);
     const rb = e.target.closest("[data-remove-block]");
-    if (rb) { state.blocks = state.blocks.filter(b => b.id !== rb.dataset.removeBlock); saveState(); renderPlan(); renderHome(); }
+    if (rb) {
+      Sync.marcarBorrado("block:" + rb.dataset.removeBlock);
+      state.blocks = state.blocks.filter(b => b.id !== rb.dataset.removeBlock);
+      saveState(); renderPlan(); renderHome();
+    }
   });
 
   window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredInstallPrompt = e; $("install-btn").classList.remove("hidden"); });
@@ -473,12 +491,152 @@ function renderGoalsForm() {
 function init() {
   migrateProfile();
   migrateMeasures();
+  migrateCycle();
   setupEvents();
+  setupCycleEvents();
   renderGoalsForm();
   renderHome();
   renderPlan();
   renderNutrition();
   renderProgress();
+  renderCycle();
+  renderSyncUI();
+  Sync.init();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js").catch(() => {});
 }
+
+/* ============================================================
+   Pantalla de sincronización
+   ============================================================ */
+
+function renderSyncUI() {
+  const chip = $("sync-chip");
+  if (!chip) return;
+  const st = Sync.estado();
+
+  let txt, cls;
+  if (!st.configurado) { txt = "Solo acá"; cls = "local"; }
+  else if (!st.online) { txt = "Sin conexión"; cls = "offline"; }
+  else if (st.sincronizando) { txt = "Guardando…"; cls = "syncing"; }
+  else if (!st.conectado) { txt = "Sin conectar"; cls = "offline"; }
+  else if (st.pendiente) { txt = "Por subir"; cls = "syncing"; }
+  else { txt = "En la nube"; cls = "ok"; }
+  chip.textContent = txt;
+  chip.className = `sync-chip ${cls}`;
+
+  const card = $("sync-card");
+  if (!card) return;
+  const cfg = Sync.estado().configurado ? (JSON.parse(localStorage.getItem("nilmar-sync-config") || "{}")) : {};
+
+  card.innerHTML = st.conectado ? `
+    <div class="section-title-row compact-row">
+      <h3>✅ Conectado</h3>
+      <span class="sync-chip ok">${escapeHtml(st.email || "")}</span>
+    </div>
+    <p class="muted sub">Todo lo que cargues se guarda en tu cuenta y aparece en cualquier teléfono o computadora donde entres con el mismo email.</p>
+    <p class="dataset-note">${st.ultimaSync ? "Última vez: " + new Date(st.ultimaSync).toLocaleString("es-AR") : "Todavía sin sincronizar"}${st.pendiente ? " · hay cambios por subir" : ""}</p>
+    <div class="button-grid">
+      <button id="sync-now" class="primary-btn">Sincronizar ahora</button>
+      <button id="sync-off" class="ghost-btn">Desconectar</button>
+    </div>` : `
+    <div class="section-title-row compact-row">
+      <h3>☁️ Guardar en la nube</h3>
+    </div>
+    <p class="muted sub">Ahora mismo tus registros viven solo en este navegador. Si lo conectás, vas a verlos igual desde el celular y la computadora.</p>
+
+    <details class="instructions-box">
+      <summary>Qué datos pedir (los da Wilder)</summary>
+      <p class="dataset-note">Son los mismos del proyecto de Supabase que ya está creado: la dirección del proyecto y la clave pública. El email y la contraseña los elegís vos y son solo para esta app.</p>
+    </details>
+
+    <label class="label" for="sync-url">Dirección del proyecto</label>
+    <input id="sync-url" type="url" placeholder="https://xxxxx.supabase.co" value="${escapeHtml(cfg.url || "")}" />
+    <label class="label" for="sync-key">Clave pública</label>
+    <input id="sync-key" type="text" placeholder="sb_publishable_… o eyJ…" value="${escapeHtml(cfg.anonKey || "")}" />
+    <div class="macro-inputs">
+      <div><label class="label" for="sync-email">Email</label><input id="sync-email" type="email" placeholder="vos@email.com" value="${escapeHtml(cfg.email || "")}" /></div>
+      <div><label class="label" for="sync-pass">Contraseña</label><input id="sync-pass" type="password" placeholder="mínimo 6 caracteres" /></div>
+    </div>
+    <p id="sync-error" class="warn-note hidden"></p>
+    <button id="sync-connect" class="primary-btn full">Conectar</button>
+    <p class="dataset-note">La primera vez crea la cuenta sola. Después, en el otro dispositivo entrás con el mismo email y contraseña y aparece todo.</p>`;
+
+  const lista = $("sync-data-list");
+  if (lista) {
+    const n = state.nutrition || {};
+    const filas = [
+      ["Comidas registradas", Object.values(n.days || {}).reduce((a, d) => a + (d?.length || 0), 0)],
+      ["Días del plan marcados", Object.keys(n.planLog || {}).length],
+      ["Pesos", (n.weights || []).length],
+      ["Medidas", (n.measures || []).length],
+      ["Alimentos propios", (n.customFoods || []).length],
+      ["Actividades", (state.logs || []).length],
+      ["Entrenamientos marcados", Object.keys(state.completed || {}).length]
+    ];
+    lista.innerHTML = filas.map(([t, n2]) => `<div class="hist-row"><span>${t}</span><span>${n2 || "—"}</span><span></span></div>`).join("");
+  }
+
+  bindSyncEvents();
+}
+
+let syncEventsBound = false;
+function bindSyncEvents() {
+  const connect = $("sync-connect");
+  if (connect && !connect.dataset.bound) {
+    connect.dataset.bound = "1";
+    connect.addEventListener("click", async () => {
+      const err = $("sync-error");
+      err.classList.add("hidden");
+      connect.disabled = true; connect.textContent = "Conectando…";
+      const r = await Sync.conectar({
+        url: $("sync-url").value, anonKey: $("sync-key").value,
+        email: $("sync-email").value, password: $("sync-pass").value
+      });
+      connect.disabled = false; connect.textContent = "Conectar";
+      if (r.ok) renderSyncUI();
+      else { err.textContent = r.error; err.classList.remove("hidden"); }
+    });
+  }
+  const now = $("sync-now");
+  if (now && !now.dataset.bound) {
+    now.dataset.bound = "1";
+    now.addEventListener("click", async () => {
+      now.disabled = true; now.textContent = "Sincronizando…";
+      await Sync.sincronizar();
+      now.disabled = false; now.textContent = "Sincronizar ahora";
+    });
+  }
+  const off = $("sync-off");
+  if (off && !off.dataset.bound) {
+    off.dataset.bound = "1";
+    off.addEventListener("click", () => {
+      if (!confirm("¿Desconectar? Tus datos siguen acá y en la nube; solo dejan de sincronizarse.")) return;
+      Sync.desconectar();
+    });
+  }
+
+  if (syncEventsBound) return;
+  syncEventsBound = true;
+  $("sync-export")?.addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(Sync.exportar(), null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `nilmar-${todayDateKey()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  $("sync-import-btn")?.addEventListener("click", () => $("sync-import-file").click());
+  $("sync-import-file")?.addEventListener("change", async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await Sync.importar(JSON.parse(await file.text()));
+      alert("Datos restaurados ✓");
+      renderSyncUI();
+    } catch { alert("No pude leer ese archivo."); }
+  });
+}
+
+// El arranque va al final: así todas las funciones y variables de arriba
+// ya existen cuando init() las usa.
 init();

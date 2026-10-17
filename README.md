@@ -109,3 +109,79 @@ Debajo del contador sigue el plan de la **Lic. Solana María Nacul (M.P. 336)**:
 ## Aviso
 
 El plan de alimentación es de la Lic. Solana María Nacul; la app solo lo muestra y ayuda a cumplirlo. El entrenamiento lo organiza la app, pero no reemplaza a un médico. Antes de una cirugía programada y con un plan de pérdida de peso conviene que un profesional revise los números, y el módulo post-operatorio depende siempre de lo que indique la cirujana.
+
+---
+
+## Sincronización entre teléfonos y navegadores
+
+La app guarda todo primero en el dispositivo (sigue funcionando sin internet)
+y además sube una copia a Supabase. Al abrirla en otro lado con el mismo email,
+baja lo que falte y lo **une** con lo que ya hay.
+
+### Cómo la conecta Nilmar
+
+1. Abrir la app → tocar el chip de arriba a la derecha ("Solo en este equipo").
+2. Pegar la **dirección del proyecto** y la **clave publishable** de Supabase
+   (botón verde *Connect* en el panel de Supabase → sección *App Frameworks*).
+3. Poner un email y una contraseña de al menos 6 caracteres. La primera vez
+   crea la cuenta; hay que confirmar el mail que llega y volver a tocar Conectar.
+4. Repetir los mismos 4 datos en el otro teléfono o navegador. Listo.
+
+Puede usar el mismo proyecto de Supabase que Wildev OS: la tabla `app_data` ya
+existe y la seguridad por filas (RLS) hace que cada cuenta vea solo lo suyo.
+Nilmar usa su propio email, así que sus datos quedan separados.
+
+### Por qué no se pisan los datos
+
+El estado de la app es un solo objeto grande. Si se subiera entero, el último
+dispositivo en guardar borraría lo del otro. Por eso `sync.js` une **registro
+por registro**: comidas por id, pesos y medidas por fecha, bloques del plan por
+id. Si cargó comidas en el celular y el peso en la computadora, quedan las dos
+cosas.
+
+Lo que se borra queda anotado en `state.deleted` ("marcas de borrado") durante
+90 días, para que no reaparezca desde el otro dispositivo en la próxima unión.
+
+### Respaldo manual
+
+En la misma pantalla hay **Descargar** y **Restaurar**: un archivo con todo,
+por si quiere pasar los datos sin conectar nada o guardar una copia aparte.
+
+---
+
+## Módulo de ciclo menstrual
+
+Pestaña **Ciclo**. El historial ya viene cargado desde el informe de Salud
+del 17/10/2026: 4 ciclos completos entre el 27 de junio y el 17 de octubre,
+con flujo, manchado y síntomas día por día.
+
+### Qué hace
+
+- **Dónde está hoy**: día del ciclo, fase y cuánto falta para el próximo período.
+- **Calendario**: se toca cualquier día para cargar flujo, manchado, síntomas y una nota.
+- **Historial**: ciclo típico, período típico y la lista de todos los períodos.
+
+Los períodos no se cargan como "del día X al día Y": se deducen de los días con
+sangrado. Un período nuevo arranca cuando hay sangrado sin otro sangrado en los
+3 días previos — esa tolerancia existe porque en agosto hubo un día sin registro
+en el medio del período, y sin ella el ciclo se partía en dos.
+
+Para el ciclo típico se usa la **mediana**, no el promedio: con sus datos
+(20, 27, 28 y 29 días) la mediana da 28 y el promedio 26. El ciclo de 20 días
+es un caso aislado y no debería arrastrar la estimación. 28 es también lo que
+calcula la app de Salud.
+
+La ovulación se estima 14 días **antes** del próximo período, no 14 después del
+anterior: esa es la parte del ciclo que casi no varía. Los días fértiles que
+muestra son una estimación y están marcados como tal — no sirven como método
+anticonceptivo.
+
+### Por qué se cruza con el resto de la app
+
+- **Balanza**: en fase lútea retiene entre 1 y 2 kg de líquido. Sin ese aviso,
+  una subida de la semana previa al período parece un fracaso de la dieta.
+- **Medidas**: los senos cambian de tamaño durante el ciclo. El contorno de
+  pecho es el dato que va a mirar el cirujano en abril de 2027, así que la app
+  recomienda medir siempre entre el día 5 y el 10 del ciclo.
+- **Entrenamiento**: sugerencias por fase, dichas como pista y no como regla.
+- **Hierro**: aparece solo si los últimos períodos vinieron largos o abundantes.
