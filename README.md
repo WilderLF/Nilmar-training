@@ -93,7 +93,10 @@ Debajo del contador sigue el plan de la **Lic. Solana María Nacul (M.P. 336)**:
 - Proyección: calcula el ritmo real de las últimas 4 semanas y estima cuándo llegaría a los 80 kg y con cuánto peso llegaría a la cirugía.
 - Avisos: si baja más de 1 kg por semana, sugiere sumar calorías (ahí es donde se pierde músculo).
 - **Medidas**: cuello, pecho/senos, cintura, abdomen (ombligo), cadera, brazo y muslo, con nota opcional por medición. Tabla comparativa entre la primera y la última toma, con el total de centímetros perdidos.
-- Vienen cargadas las mediciones del **18/07** (cuello 38, pecho 127, cintura 108, cadera 129, abdomen 133) y del **29/08** (37, 121, 107, 126, 126).
+- Vienen cargadas tres mediciones:
+  - **18/07** · cuello 38, pecho 127, cintura 108, cadera 129, abdomen 133
+  - **29/08** · 37, 121, 107, 126, 126
+  - **17/10** · cuello 38, pecho 118, cintura 106, cadera 127, abdomen 122, brazo 34, muslo 78
 - Historial de actividades con kilómetros acumulados.
 
 ## Técnico

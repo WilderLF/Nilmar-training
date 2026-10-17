@@ -25,8 +25,13 @@ const MEASURES_BASE = [
   { date: "2026-07-18", cuello: 38, pecho: 127, cintura: 108, cadera: 129, abdomen: 133,
     nota: "Referencia inicial (alrededor de 115 kg). El abdomen se había registrado como \"cadera + abdomen\"." },
   { date: "2026-08-29", cuello: 37, pecho: 121, cintura: 107, cadera: 126, abdomen: 126,
-    nota: "Abdomen medido por el ombligo: el punto anatómico no es igual al de julio, así que los −7 cm no son comparación exacta." }
+    nota: "Abdomen medido por el ombligo: el punto anatómico no es igual al de julio, así que los −7 cm no son comparación exacta." },
+  { date: "2026-10-17", cuello: 38, pecho: 118, cintura: 106, cadera: 127, abdomen: 122, muslo: 78, brazo: 34,
+    nota: "Primera vez que se miden brazo y muslo: desde acá se pueden comparar." }
 ];
+
+// Subir este número vuelve a cargar las mediciones de arriba que falten.
+const MEASURES_SEED = 2;
 /* Calorías extra el día que entrena.
    El nivel de actividad del perfil es SOLO la vida diaria sin ejercicio,
    así que el entrenamiento se suma aparte: así un día sin entrenar come
@@ -102,12 +107,17 @@ function migrateMeasures() {
     }
     return m;
   });
-  if (!nu.seededMeasures) {
+  // Se siembra por versión, no por un sí/no: así una medición nueva
+  // entra aunque la app ya haya cargado las anteriores. Nunca pisa lo
+  // que haya cargado ella a mano en esa misma fecha.
+  const sembrado = nu.seededMeasures === true ? 1 : (nu.measuresSeed || 0);
+  if (sembrado < MEASURES_SEED) {
     MEASURES_BASE.forEach(base => {
       if (!nu.measures.some(m => m.date === base.date)) nu.measures.push({ ...base });
     });
     nu.measures.sort((a, b) => a.date.localeCompare(b.date));
-    nu.seededMeasures = true;
+    nu.measuresSeed = MEASURES_SEED;
+    delete nu.seededMeasures;
     saveState();
   }
 }
