@@ -494,6 +494,7 @@ function init() {
   migrateCycle();
   setupEvents();
   setupCycleEvents();
+  setupFotoEvents();
   renderGoalsForm();
   renderHome();
   renderPlan();

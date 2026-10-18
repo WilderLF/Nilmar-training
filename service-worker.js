@@ -1,6 +1,6 @@
-const CACHE_NAME = "nilmar-training-v6-ciclo";
+const CACHE_NAME = "nilmar-training-v7-foto";
 const APP_ASSETS = [
-  "./", "./index.html", "./styles.css", "./app.js", "./sync.js", "./nutrition.js", "./cycle.js",
+  "./", "./index.html", "./styles.css", "./app.js", "./sync.js", "./nutrition.js", "./cycle.js", "./foto.js",
   "./data/modules.js", "./data/exercise-dataset.js", "./data/foods.js", "./data/plan-alimentacion.js", "./data/cycle-data.js",
   "./manifest.json", "./assets/isologo.png", "./icons/icon-192.png", "./icons/icon-512.png"
 ];

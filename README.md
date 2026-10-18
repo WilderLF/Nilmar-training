@@ -185,3 +185,66 @@ anticonceptivo.
   recomienda medir siempre entre el día 5 y el 10 del ciclo.
 - **Entrenamiento**: sugerencias por fase, dichas como pista y no como regla.
 - **Hierro**: aparece solo si los últimos períodos vinieron largos o abundantes.
+
+---
+
+## Cargar comida con una foto
+
+En la pestaña **Comida**, arriba de todo. Se le saca una foto al plato y Claude
+estima qué hay y cuántos gramos. Lo que vuelve es un **borrador editable**: ella
+corrige los gramos y recién ahí se guarda.
+
+### Por qué es un borrador y no un número final
+
+Desde una foto no se puede ver el aceite con el que se cocinó (una cucharada son
+126 kcal), ni la profundidad del plato, ni si el corte es magro. La estimación de
+la porción es siempre la parte más floja. Por eso cada alimento viene con un
+nivel de confianza, y cuando es "baja" la app lo dice.
+
+Cuando pueda usar la balanza, que la use: va a ser más exacto. La foto es para
+cuando come afuera o para algo que no está en la lista de alimentos.
+
+### Qué hay que configurar (una sola vez)
+
+**1 · Crear una clave de API.** Entrar a `console.anthropic.com`, sección
+*API Keys* → *Create Key*. Esto es **aparte de la suscripción de Claude**: se
+paga por uso y hay que cargarle crédito.
+
+**2 · Cargar tres variables en Vercel.** En el proyecto de la app de Nilmar:
+*Settings → Environment Variables*. Agregar:
+
+| Nombre | Valor |
+|---|---|
+| `ANTHROPIC_API_KEY` | la clave del paso 1 |
+| `SUPABASE_URL` | la dirección del proyecto de Supabase |
+| `SUPABASE_ANON_KEY` | la clave publishable (la misma que usa la app) |
+
+**3 · Volver a publicar.** Vercel toma las variables nuevas recién en el próximo
+deploy. Con subir los archivos a GitHub alcanza.
+
+La carpeta `api/` se convierte sola en una función de servidor: no hay que
+configurar nada más.
+
+### Por qué la clave va en el servidor y no en la app
+
+La app es una página pública: cualquiera que la abra puede leer su código. Si la
+clave estuviera ahí, cualquiera podría usarla y la factura llegaría igual. Por eso
+la foto se manda a `api/analizar-comida`, que corre en Vercel, y la clave nunca
+sale de ahí.
+
+Esa función además **verifica la sesión de Supabase** antes de llamar a Claude.
+Sin esa verificación, cualquiera que descubriera la dirección podría gastar
+crédito ajeno. Como efecto secundario, la cámara solo anda con la cuenta
+conectada — si no lo está, la app lo avisa y ofrece el link para conectarse.
+
+### Qué cuesta
+
+Cada foto se achica a 1000 px antes de subirla (de unos 4 MB a menos de 200 KB),
+lo que baja el costo y la hace más rápida con datos móviles.
+
+Con `claude-sonnet-5-5`, cada foto son unos **0,7 centavos de dólar**. Cinco
+fotos por día, todos los días, dan alrededor de **1 dólar por mes**.
+
+Si se quiere más barato, cambiar `MODELO` arriba de `api/analizar-comida.js` por
+`claude-haiku-5-5`: sale unas veinte veces menos, a cambio de estimaciones menos
+finas. Es una línea.

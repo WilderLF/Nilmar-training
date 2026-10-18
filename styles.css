@@ -565,3 +565,80 @@ input[type=range] { padding: 0; accent-color: var(--accent); background: transpa
 .cy-stats3 .stat-card { padding: 12px 10px; }
 .cy-stats3 .stat-card span { font-size: 22px; }
 .cy-stats3 .stat-card p { font-size: 11.5px; line-height: 1.3; }
+
+/* ==========================================================
+   Cargar comida con una foto
+   ========================================================== */
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.foto-panel { border: 1px dashed rgba(45, 147, 173, .45); }
+.foto-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.foto-intro { font-size: 13.5px; line-height: 1.5; margin: 6px 0 12px; }
+
+.foto-btn {
+  display: flex; align-items: center; gap: 12px; cursor: pointer;
+  background: linear-gradient(135deg, #EDF6F9, #F6FBFD);
+  border: 1px solid rgba(45, 147, 173, .3); border-radius: 15px; padding: 15px;
+}
+.foto-btn:active { transform: scale(.99); }
+.foto-btn span { font-size: 26px; }
+.foto-btn strong { display: block; font-size: 14.5px; }
+.foto-btn small { color: var(--muted); font-size: 12.5px; }
+
+.foto-preview { margin-top: 12px; }
+.foto-preview img { width: 100%; max-height: 250px; object-fit: cover; border-radius: 13px; display: block; }
+
+.foto-estado {
+  margin-top: 12px; padding: 11px 13px; border-radius: 11px; font-size: 13.5px;
+  background: #EDF4F8; color: #1F5F75; display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+}
+.foto-estado.ok { background: #EEF8EC; color: #3A7A30; }
+.foto-estado.warn { background: #FFF4E8; color: #9A5B14; }
+.foto-estado.error { background: #FDECEA; color: #A32A1C; }
+.foto-spin {
+  width: 13px; height: 13px; border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; display: inline-block; animation: foto-giro .7s linear infinite;
+}
+@keyframes foto-giro { to { transform: rotate(360deg); } }
+
+.foto-draft { margin-top: 14px; }
+.foto-draft-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.foto-draft-head h4 { font-size: 14px; font-weight: 700; margin: 0; }
+.foto-total { font-size: 13px; color: var(--muted); }
+.foto-total b { font-size: 20px; color: var(--teal); font-weight: 800; }
+.foto-nota {
+  margin-top: 9px; padding: 10px 12px; border-radius: 10px; background: #FFF4E8;
+  font-size: 12.5px; line-height: 1.5; color: #7A4A10;
+}
+
+.foto-item { background: #F6F8FB; border-radius: 13px; padding: 12px; margin-top: 9px; }
+.foto-item-head { display: flex; gap: 8px; align-items: center; }
+.foto-nombre {
+  flex: 1; min-height: 36px; border: 1px solid transparent; background: transparent;
+  font: inherit; font-size: 14.5px; font-weight: 600; color: var(--ink); border-radius: 8px; padding: 0 6px;
+}
+.foto-nombre:focus { outline: none; background: #fff; border-color: var(--line); }
+.foto-quitar {
+  width: 30px; height: 30px; flex: none; border-radius: 8px; border: none;
+  background: transparent; color: var(--muted); font-size: 14px;
+}
+.foto-quitar:hover { background: #FDECEA; color: var(--red); }
+
+.foto-item-row { display: flex; align-items: center; gap: 11px; margin-top: 7px; flex-wrap: wrap; }
+.foto-item-row label { display: flex; flex-direction: column; gap: 3px; }
+.foto-item-row label span { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; }
+.foto-g {
+  width: 84px; min-height: 40px; border-radius: 10px; border: 1px solid var(--line);
+  background: #fff; font: inherit; font-size: 15px; font-weight: 700; text-align: center; color: var(--ink);
+}
+.foto-g:focus { outline: 2px solid var(--teal); outline-offset: -1px; }
+.foto-macros { flex: 1; min-width: 110px; font-size: 12.5px; color: var(--muted); }
+.foto-macros b { font-size: 17px; color: var(--ink); font-weight: 800; }
+.foto-macros small { display: block; font-size: 11.5px; }
+.foto-conf {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  padding: 4px 8px; border-radius: 999px; align-self: center;
+}
+.foto-conf.alta { background: #E4F3E0; color: #3A7A30; }
+.foto-conf.media { background: #FBF0DC; color: #8A6314; }
+.foto-conf.baja { background: #FBE2DE; color: #A33A28; }

@@ -241,6 +241,29 @@
           <p id="training-note" class="feedback-note"></p>
         </article>
 
+        <article id="foto-box" class="panel foto-panel">
+          <div class="foto-head">
+            <h3>📷 Cargar con una foto</h3>
+            <button id="foto-limpiar" class="ghost-btn small-btn">Limpiar</button>
+          </div>
+          <p class="muted foto-intro">Sacale una foto al plato y te estimo los macros.
+            Es un borrador: revisá los gramos antes de guardar.</p>
+
+          <label for="foto-input" class="foto-btn">
+            <span>📸</span>
+            <div><strong>Sacar o elegir una foto</strong>
+              <small>Mejor de arriba y con el plato entero a la vista</small></div>
+          </label>
+          <input id="foto-input" type="file" accept="image/*" capture="environment" class="visually-hidden" />
+
+          <input id="foto-pista" class="cy-input top-gap" type="text" maxlength="120"
+            placeholder="Opcional: 'con dos cucharadas de aceite', 'es pechuga'" />
+
+          <div id="foto-preview" class="foto-preview hidden"></div>
+          <p id="foto-estado" class="foto-estado hidden"></p>
+          <div id="foto-resultado"></div>
+        </article>
+
         <article class="panel">
           <h3>Agregar comida</h3>
           <label class="label" for="food-select">Alimento</label>
@@ -491,6 +514,7 @@
   <script src="sync.js"></script>
   <script src="nutrition.js"></script>
   <script src="cycle.js"></script>
+  <script src="foto.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -242,6 +242,16 @@ const Sync = (() => {
     };
   }
 
+  /* El token de la sesión: lo usa la función que analiza las fotos
+     para confirmar que quien llama es ella y no un desconocido. */
+  async function token() {
+    if (!supabase) return null;
+    try {
+      const { data } = await supabase.auth.getSession();
+      return data?.session?.access_token || null;
+    } catch { return null; }
+  }
+
   /* ---------- respaldo manual ---------- */
   const exportar = () => ({ app: "Nilmar Training", exportado: new Date().toISOString(), estado: state });
 
@@ -269,5 +279,5 @@ const Sync = (() => {
     renderSyncUI();
   }
 
-  return { init, conectar, desconectar, sincronizar, programarSubida, estado, exportar, importar, marcarBorrado, unirEstados };
+  return { init, conectar, desconectar, sincronizar, programarSubida, estado, token, exportar, importar, marcarBorrado, unirEstados };
 })();
