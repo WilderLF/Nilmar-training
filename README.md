@@ -24,6 +24,7 @@ En vez de un plan fijo, la app trabaja con **módulos**. Cada uno define una sem
 
 | Módulo | Semana |
 |---|---|
+| 🏋️‍♀️ **Gimnasio juntos** | El mismo plan que la app de Wilder: 3 full body (A: fuerza pesada, B: potencia + una pierna, C: densidad) con las mismas series y repeticiones, cada uno con su peso. Lun/mié/vie por defecto, pero desde Inicio se puede elegir cualquier rutina cualquier día. Caminatas mar/jue/sáb |
 | 🏋️‍♀️ **Gimnasio · Fuerza** | 3 días de pesas (lun/mié/vie) con máquinas y mancuernas + caminatas mar/jue/sáb + domingo de descanso |
 | 🏠 **En casa** | Misma estructura **sin equipamiento**: silla, toalla, escalón, pared y mochila con botellas |
 | 🚶‍♀️ **Caminatas** | Foco en caminar + 2 sesiones cortas de fuerza (sin equipamiento) |
@@ -48,7 +49,7 @@ En **Plan → Mis bloques** se asigna un módulo a un rango de fechas. Ya vienen
 - 26/09 – 01/10/2026 · Camino de Santiago
 - 02/10 – 14/10/2026 · Europa (módulo Viaje)
 - 15/10 – 31/10/2026 · Vuelta a la rutina (En casa)
-- 01/11/2026 – 31/03/2027 · Gimnasio: fuerza
+- 01/11/2026 – 31/03/2027 · Gimnasio juntos (el bloque que antes era "Gimnasio: fuerza" se pasa solo al plan compartido)
 
 Fuera de cualquier bloque se usa el módulo por defecto. Los bloques se agregan y borran desde la app: si un mes quiere hacer solo caminatas, crea el bloque y listo.
 

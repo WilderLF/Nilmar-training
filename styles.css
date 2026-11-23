@@ -642,3 +642,6 @@ input[type=range] { padding: 0; accent-color: var(--accent); background: transpa
 .foto-conf.alta { background: #E4F3E0; color: #3A7A30; }
 .foto-conf.media { background: #FBF0DC; color: #8A6314; }
 .foto-conf.baja { background: #FBE2DE; color: #A33A28; }
+
+/* Plan a elección: rutinas de otros días en Inicio */
+.other-routines { margin: 16px 0 8px; }
