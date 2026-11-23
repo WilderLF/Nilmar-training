@@ -88,6 +88,56 @@ const GYM_C = session("Fuerza C · Cuerpo completo", "45-55 min",
     PLANCHA
   ]);
 
+/* ---------------- Módulo: GIMNASIO JUNTOS ----------------
+   Mismo plan que la app de Wilder: mismas series, repeticiones y
+   descansos para entrenar juntos. Cambia el peso y, en pocos
+   ejercicios, la variante. Si se cambia acá, cambiarlo también allá. */
+
+const ROT_EXT_POLEA = ex("Rotación externa en polea", 2, "15 por lado", 45, "cable standing shoulder external rotation",
+  "Polea a la altura del codo, codo pegado al cuerpo y el peso más liviano. Hombros sanos y mejor postura.");
+
+const JUNTOS_A = session("Rutina A · Fuerza pesada", "55-60 min",
+  "Pocas repeticiones con bastante peso: es lo que le dice al cuerpo que conserve y construya músculo mientras baja la grasa. Así no queda flácido.",
+  [
+    ex("Entrada en calor en cinta inclinada", 1, "6-8 min", 0, "walking on incline treadmill", "Inclinación 5-8 %, ritmo cómodo. Después hacé 2 series livianas del primer ejercicio."),
+    ex("Sentadilla goblet", 4, "6-8", 150, "dumbbell goblet squat", "Mancuerna pegada al pecho. Bajá hasta donde puedas con la espalda recta. Wilder hace sentadilla con barra. Cuando la mancuerna más pesada te quede liviana, pasá a la Smith."),
+    ex("Press de banca con mancuernas", 4, "6-8", 120, "dumbbell bench press", "Omóplatos juntos y pies firmes. Bajá hasta el costado del pecho en 2 segundos."),
+    ex("Jalón al pecho", 4, "6-8", 120, "cable lat pulldown full range of motion", "Barra al pecho, no a la nuca. Codos hacia abajo, pecho arriba. Wilder hace dominadas."),
+    ex("Peso muerto rumano con mancuernas", 3, "8-10", 120, "dumbbell romanian deadlift", "Cadera atrás, mancuernas pegadas a las piernas, rodillas apenas dobladas. Sentí el estiramiento detrás del muslo."),
+    ex("Remo sentado en polea", 3, "10-12", 90, "cable seated row", "Pecho alto, llevá los codos atrás y juntá los omóplatos."),
+    ROT_EXT_POLEA,
+    ex("Cinta inclinada", 1, "10 min", 0, "", "Inclinación 8-12 %, caminando rápido sin agarrarte de la baranda.", true)
+  ]);
+
+const JUNTOS_B = session("Rutina B · Potencia + una pierna", "55-60 min",
+  "Glúteos, piernas de a una y cintura. Lo rápido va primero, cuando estás fresca.",
+  [
+    ex("Entrada en calor en bici", 1, "6-8 min", 0, "stationary bike walk", "Resistencia baja. Sumá balanceos de pierna y giros de torso."),
+    ex("Sentadilla al cajón rápida", 3, "5", 90, "", "Cajón o banco detrás tuyo: sentate controlada y levantate lo más rápido que puedas. Sin saltar, cuida las rodillas. Wilder hace saltos al cajón.", true),
+    ex("Lanzamiento rotacional con balón medicinal", 3, "6 por lado", 60, "", "De costado a la pared, balón de 2-4 kg: girá desde la cadera y lanzalo contra la pared. Trabaja cintura y oblicuos.", true),
+    ex("Subida al cajón con mancuernas", 3, "8-10 por pierna", 90, "dumbbell step-up", "Empezá sin peso. Empujá con el talón de la pierna de arriba. Wilder hace sentadilla búlgara."),
+    ex("Hip thrust con barra", 3, "10-12", 90, "barbell glute bridge", "Espalda en el banco, barra sobre la cadera con almohadilla. Empujá con los talones y apretá 1 segundo arriba."),
+    ex("Press de hombros con mancuernas sentada", 3, "8-10", 90, "dumbbell seated shoulder press", "Con respaldo y sin arquear la espalda."),
+    ex("Press de pecho en máquina", 3, "8-10", 90, "lever chest press", "Manijas a la altura del pecho. Wilder hace fondos."),
+    ex("Remo a una mano con mancuerna", 3, "10-12 por lado", 60, "dumbbell one arm bent over row", "Mano y rodilla en el banco. Llevá la mancuerna a la cadera sin girar el torso."),
+    ex("Press Pallof en polea", 3, "10 por lado", 45, "band horizontal pallof press", "De costado a la polea, estirá los brazos al frente sin dejar que el torso gire. Abdomen firme y cintura.")
+  ]);
+
+const JUNTOS_C = session("Rutina C · Densidad", "50-55 min",
+  "Más repeticiones y descansos cortos: gasta más calorías. En pareja: uno trabaja mientras el otro descansa.",
+  [
+    ex("Entrada en calor en cinta", 1, "5 min", 0, "walking on incline treadmill", "Ritmo cómodo con algo de inclinación."),
+    ex("Prensa de piernas", 3, "12-15", 75, "sled 45 leg press", "Pies al ancho de cadera. Bajá hasta 90° de rodilla sin despegar la cola del respaldo."),
+    ex("Jalón al pecho", 3, "10-12", 60, "cable lat pulldown full range of motion", "Barra al pecho, codos hacia abajo."),
+    ex("Press inclinado con mancuernas", 3, "10-12", 60, "dumbbell incline bench press", "Banco a 30°."),
+    ex("Curl femoral acostada", 3, "12-15", 60, "lever lying leg curl", "Isquiotibiales: equilibran los cuádriceps y protegen la rodilla."),
+    ex("Remo en máquina", 3, "12", 60, "lever seated row", "Pecho apoyado, codos atrás."),
+    ex("Zancada lateral con mancuerna", 3, "10 por lado", 60, "barbell lateral lunge", "Mancuerna al pecho. Paso al costado, cadera atrás y la otra pierna estirada. Empezá sin peso y sostenete de algo si hace falta."),
+    ex("Elevaciones laterales", 3, "12-15", 45, "dumbbell lateral raise", "Peso liviano. Los hombros marcados hacen que la cintura se vea más chica."),
+    ex("Paseo del granjero", 3, "30-40 m", 60, "farmers walk", "Mancuernas pesadas a los costados, caminá erguida y sin apuro."),
+    ex("Intervalos en bici", 1, "8 × 20 s fuerte / 40 s suave", 0, "", "Cierre de 8 minutos. Fuerte de verdad en los 20 segundos.", true)
+  ]);
+
 /* ---------------- Módulo: CASA ---------------- */
 
 const SENTADILLA_SILLA = (sets, reps) => ex("Sentadilla sostenida de la silla", sets, reps, 60, "potty squat with support",
@@ -217,6 +267,21 @@ const POSTOP_MOV = session("Movilidad autorizada", "10 min",
 /* ---------------- Definición de módulos ---------------- */
 
 const MODULES = {
+  juntos: {
+    key: "juntos", label: "Gimnasio juntos", emoji: "🏋️‍♀️", accent: "#5F7F00", onAccent: "#FFFFFF",
+    tagline: "3 full body con Wilder + caminatas", freeChoice: true,
+    description: "El mismo plan que Wilder, para entrenar juntos en el gimnasio: mismas series, repeticiones y descansos, cada uno con su peso. Tres rutinas de cuerpo completo que construyen músculo mientras bajás grasa con el déficit, más caminatas los otros días. Si van otro día, elegí cualquier rutina desde Inicio.",
+    keys: ["Progresá el peso: cuando llegues al tope de repeticiones en todas las series, subí la carga la próxima vez", "Cada serie termina con 1-2 repeticiones en reserva: pesado, pero con buena técnica", "Mismo plan, distinto peso: no te compares con los kilos de Wilder, compará con tu semana anterior", "Bajar 0,5-1 kg por semana es el ritmo que conserva músculo"],
+    week: {
+      monday: day("strength", "Rutina A", "Alta", "Fuerza pesada de cuerpo completo.", [JUNTOS_A]),
+      tuesday: day("walk", "Caminata", "Baja", "Cardio suave que suma gasto sin cansar las piernas.", [walkSession("40-50 min", "Ritmo en el que podés hablar pero no cantar.", "Cardio aeróbico y recuperación.")]),
+      wednesday: day("strength", "Rutina B", "Alta", "Potencia, glúteos y una pierna por vez.", [JUNTOS_B]),
+      thursday: day("walk", "Caminata", "Baja", "Movimiento y cabeza despejada.", [walkSession("40 min", "Tranquilo. Si podés, con alguna subida.", "Mantener el movimiento diario.")]),
+      friday: day("strength", "Rutina C", "Media/alta", "Más repeticiones y descansos cortos.", [JUNTOS_C]),
+      saturday: day("walk", "Caminata larga", "Media", "La caminata larga de la semana.", [walkSession("60-75 min", "Ritmo sostenido, terreno variado. Llevá agua.", "Resistencia y gasto calórico.")]),
+      sunday: rest()
+    }
+  },
   gym: {
     key: "gym", label: "Gimnasio · Fuerza", emoji: "🏋️‍♀️", accent: "#F21A3F", onAccent: "#FFFFFF",
     tagline: "3 días de pesas + caminatas",
@@ -300,7 +365,7 @@ const MODULES = {
   }
 };
 
-const MODULE_ORDER = ["gym", "home", "walking", "camino", "travel", "postop"];
+const MODULE_ORDER = ["juntos", "gym", "home", "walking", "camino", "travel", "postop"];
 
 function buildWeek(moduleKey) {
   const mod = MODULES[moduleKey] || MODULES.home;

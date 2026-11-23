@@ -28,7 +28,7 @@ function defaultState() {
       { id: "b-camino", module: "camino", start: "2026-09-26", end: "2026-10-01", label: "Camino de Santiago" },
       { id: "b-europa", module: "travel", start: "2026-10-02", end: "2026-10-14", label: "Europa" },
       { id: "b-vuelta", module: "home", start: "2026-10-15", end: "2026-10-31", label: "Vuelta a la rutina" },
-      { id: "b-gym", module: "gym", start: "2026-11-01", end: "2027-03-31", label: "Gimnasio: fuerza" }
+      { id: "b-gym", module: "juntos", start: "2026-11-01", end: "2027-03-31", label: "Gimnasio juntos" }
     ],
     goals: { startWeight: 102, targetWeight: 80, surgeryDate: "2027-04-15" },
     logs: [], completed: {}, mediaOverrides: {}, readiness: "normal",
@@ -48,6 +48,10 @@ function loadState() {
     merged.nutrition.profile = { ...base.nutrition.profile, ...(saved.nutrition?.profile || {}) };
     merged.cycle = { ...base.cycle, ...(saved.cycle || {}) };
     merged.cycle.days = { ...(saved.cycle?.days || {}) };
+    // El bloque de gimnasio que venía cargado pasa al plan compartido con Wilder.
+    // El módulo "Gimnasio · Fuerza" sigue disponible para un bloque nuevo.
+    merged.blocks = (merged.blocks || []).map(b =>
+      b.id === "b-gym" && b.module === "gym" ? { ...b, module: "juntos", label: "Gimnasio juntos" } : b);
     return merged;
   } catch { return base; }
 }
@@ -134,7 +138,14 @@ function renderHome() {
   $("today-goal").textContent = d.goal;
   $("today-duration").textContent = d.duration;
   $("today-intensity").textContent = d.intensity;
-  $("today-sessions").innerHTML = sessionRowsHtml(todayKey(), moduleKey);
+  let sesionesHtml = sessionRowsHtml(todayKey(), moduleKey);
+  // Plan a elección: las rutinas de fuerza se pueden hacer cualquier día.
+  if (mod.freeChoice) {
+    const semana = buildWeek(moduleKey);
+    const otras = DAY_ORDER.filter(k => k !== todayKey() && semana[k].type === "strength");
+    if (otras.length) sesionesHtml += `<p class="eyebrow other-routines">¿Entrenan otro día? Elegí la rutina</p>${otras.map(k => sessionRowsHtml(k, moduleKey)).join("")}`;
+  }
+  $("today-sessions").innerHTML = sesionesHtml;
   $("medical-note").classList.toggle("hidden", !mod.medical);
   $("medical-note-text").textContent = mod.medical || "";
 
